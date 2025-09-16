@@ -6,6 +6,7 @@ namespace api.Models
         WaitingForDisplayName,
         WaitingForAge,
         WaitingForPhoto,
+        WaitingForLocation,
         WaitingForBio,
         Completed
     }

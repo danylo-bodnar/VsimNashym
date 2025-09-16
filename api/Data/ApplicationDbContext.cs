@@ -9,22 +9,20 @@ namespace api.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext() { }
-
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> dbContextOptions) : base(dbContextOptions) { }
-
         public DbSet<User> Users { get; set; }
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(u => u.Id);
                 entity.HasIndex(u => u.TelegramId).IsUnique();
                 entity.Property(u => u.DisplayName).IsRequired();
                 entity.Property(u => u.CreatedAt).HasDefaultValueSql("NOW()");
+                entity.Property(u => u.Location).HasColumnType("geometry(Point, 4326)");
             });
         }
     }

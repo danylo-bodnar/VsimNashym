@@ -24,7 +24,9 @@ if (string.IsNullOrWhiteSpace(connectionString))
         $"Current value: '{connectionString ?? "null"}'");
 }
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(
+        connectionString,
+        npgsqlOptions => npgsqlOptions.UseNetTopologySuite()));
 
 // Telegram
 var botToken = builder.Configuration["TELEGRAM_BOT_TOKEN"];

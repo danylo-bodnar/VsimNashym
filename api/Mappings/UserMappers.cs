@@ -18,6 +18,7 @@ namespace api.Mappings
                 DisplayName = dto.DisplayName,
                 Age = dto.Age,
                 ProfilePhotoFileId = dto.ProfilePhotoFileId,
+                Location = dto.Location,
                 Bio = dto.Bio,
                 CreatedAt = DateTime.UtcNow
             };
