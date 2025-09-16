@@ -2,6 +2,7 @@ using api.DTOs;
 using api.Interfaces;
 using api.Models;
 using Microsoft.Extensions.Logging;
+using NetTopologySuite.Geometries;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -43,36 +44,39 @@ namespace api.Services
 
             try
             {
-                if (state.Step == ConversationStep.WaitingForPhoto && message.Photo != null && message.Photo.Length > 0)
-                {
-                    var photo = message.Photo.Last();
-                    string photoUrl = photo.FileId;
+                // if (state.Step == ConversationStep.WaitingForPhoto && message.Photo != null && message.Photo.Length > 0)
+                // {
+                //     var photo = message.Photo.Last();
+                //     string photoUrl = photo.FileId;
 
-                    if (string.IsNullOrEmpty(photoUrl))
-                    {
-                        await SendMessageSafeAsync(chatId, "Invalid photo. Please try sending again.");
-                        return;
-                    }
+                //     if (string.IsNullOrEmpty(photoUrl))
+                //     {
+                //         await SendMessageSafeAsync(chatId, "Invalid photo. Please try sending again.");
+                //         return;
+                //     }
 
-                    state.TempProfilePhotoFileId = photoUrl;
-                    state.Step = ConversationStep.WaitingForBio;
-                    _conversationService.SetState(telegramId, state);
+                //     state.TempProfilePhotoFileId = photoUrl;
+                //     state.Step = ConversationStep.WaitingForLocation;
+                //     _conversationService.SetState(telegramId, state);
 
-                    var keyboard = new ReplyKeyboardMarkup(new[] { new KeyboardButton("Skip") })
-                    {
-                        ResizeKeyboard = true,
-                        OneTimeKeyboard = true
-                    };
+                //     var keyboard = new ReplyKeyboardMarkup(new[]
+                //  {
+                //             KeyboardButton.WithRequestLocation("Share Location")
+                //             })
+                //     {
+                //         ResizeKeyboard = true,
+                //         OneTimeKeyboard = true
+                //     };
 
-                    await SendMessageSafeAsync(chatId, "Photo received! Please write a short bio (or press 'Skip').");
-                    return;
-                }
+                //     await SendMessageSafeAsync(chatId, "Please share your location.", keyboard);
+                //     return;
+                // }
 
-                if (string.IsNullOrEmpty(text) && state.Step != ConversationStep.WaitingForPhoto)
-                {
-                    await SendMessageSafeAsync(chatId, "Please send text messages or a photo when prompted.");
-                    return;
-                }
+                // if (string.IsNullOrEmpty(text) && state.Step != ConversationStep.WaitingForPhoto)
+                // {
+                //     await SendMessageSafeAsync(chatId, "Please send text messages or a photo when prompted.");
+                //     return;
+                // }
 
                 if (text == "/register")
                 {
@@ -138,16 +142,43 @@ namespace api.Services
                     }
 
                     state.TempProfilePhotoFileId = photoFileId;
-                    state.Step = ConversationStep.WaitingForBio;
+                    state.Step = ConversationStep.WaitingForLocation;
                     _conversationService.SetState(telegramId, state);
 
+
+                    var keyboard = new ReplyKeyboardMarkup(new[]
+                        {
+                            KeyboardButton.WithRequestLocation("Share Location")
+                            })
+                    {
+                        ResizeKeyboard = true,
+                        OneTimeKeyboard = true
+                    };
+
+                    await SendMessageSafeAsync(chatId, "Please share your location.", keyboard);
+                    return;
+                }
+                if (state.Step == ConversationStep.WaitingForLocation)
+                {
+                    if (message.Location == null)
+                    {
+                        await SendMessageSafeAsync(chatId, "Please share a valid location.");
+                        return;
+                    }
+
+                    var point = new Point(message.Location.Longitude, message.Location.Latitude) { SRID = 4326 };
+
+                    state.TempLocation = point;
+                    state.Step = ConversationStep.WaitingForBio;
+
+                    _conversationService.SetState(telegramId, state);
                     var keyboard = new ReplyKeyboardMarkup(new[] { new KeyboardButton("Skip") })
                     {
                         ResizeKeyboard = true,
                         OneTimeKeyboard = true
                     };
 
-                    await SendMessageSafeAsync(chatId, "Photo received! Please write a short bio (or press 'Skip').");
+                    await SendMessageSafeAsync(chatId, "Location received! Please write a short bio (or press 'Skip').", keyboard);
                     return;
                 }
 
@@ -164,6 +195,7 @@ namespace api.Services
                     string displayName = state.TempDisplayName ?? throw new InvalidOperationException("Missing display name");
                     string photoFileId = state.TempProfilePhotoFileId ?? throw new InvalidOperationException("Missing photoFileId");
                     int age = state.TempAge ?? throw new InvalidOperationException("Missing age");
+                    Point location = state.TempLocation ?? throw new InvalidOperationException("Missing location");
 
                     var dto = new RegisterUserDto
                     {
@@ -171,6 +203,7 @@ namespace api.Services
                         DisplayName = displayName,
                         Age = age,
                         ProfilePhotoFileId = photoFileId,
+                        Location = location,
                         Bio = bio
                     };
 
@@ -207,12 +240,18 @@ namespace api.Services
                 _conversationService.Reset(telegramId);
             }
         }
-
-        private async Task SendMessageSafeAsync(long chatId, string text)
+        private async Task SendMessageSafeAsync(long chatId, string text, ReplyKeyboardMarkup? keyboard = null)
         {
             try
             {
-                await _botClient.SendMessage(chatId, text);
+                if (keyboard != null)
+                {
+                    await _botClient.SendMessage(chatId, text, replyMarkup: keyboard);
+                }
+                else
+                {
+                    await _botClient.SendMessage(chatId, text);
+                }
             }
             catch (Exception ex)
             {
