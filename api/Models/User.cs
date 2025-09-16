@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NetTopologySuite.Geometries;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,6 +14,7 @@ namespace api.Models
         public int Age { get; set; }
         public string ProfilePhotoFileId { get; set; } = string.Empty;
         public string? Bio { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public Point? Location { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
