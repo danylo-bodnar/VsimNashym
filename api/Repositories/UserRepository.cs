@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using api.Data;
+using api.DTOs;
 using api.Interfaces;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 
 namespace api.Repositories
 {
@@ -25,9 +23,34 @@ namespace api.Repositories
             return userModel;
         }
 
+        async public Task<List<NearbyUserDto>> GetNearbyUsersAsync(Point currentLocation, double radiusMeters, Guid currentUserId)
+        {
+            return await _db.Users
+                            .Where(u => u.Location != null && u.Id != currentUserId)
+                            .Where(u => u.Location.Distance(currentLocation) <= radiusMeters)
+                            .Select(u => new NearbyUserDto
+                            {
+                                DisplayName = u.DisplayName,
+                                ProfilePhotoFileId = u.ProfilePhotoFileId,
+                                Location = new LocationPoint
+                                {
+                                    Latitude = u.Location.Y,
+                                    Longitude = u.Location.X
+                                }
+                            })
+                            .ToListAsync();
+        }
+
+
+        public async Task<User?> GetUserByTelegramIdAsync(long telegramId)
+        {
+            return await _db.Users.FirstOrDefaultAsync(u => u.TelegramId == telegramId);
+        }
+
         public async Task<bool> Exists(long telegramId)
         {
             return await _db.Users.AnyAsync(u => u.TelegramId == telegramId);
         }
+
     }
 }
