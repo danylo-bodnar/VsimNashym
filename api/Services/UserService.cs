@@ -2,6 +2,7 @@ using api.DTOs;
 using api.Interfaces;
 using api.Mappings;
 using api.Models;
+using NetTopologySuite.Geometries;
 
 namespace api.Services
 {
@@ -24,6 +25,13 @@ namespace api.Services
             var user = await _userRepository.CreateAsync(userModel);
             return user;
         }
+
+        public async Task<IEnumerable<NearbyUserDto>> GetNearbyUsersAsync(Guid currentUserId, double lat, double lng, double radiusMeters)
+        {
+            var currentLocation = new Point(lng, lat) { SRID = 4326 };
+            return await _userRepository.GetNearbyUsersAsync(currentLocation, radiusMeters, currentUserId);
+        }
+
         public async Task<bool> IsUserRegisteredAsync(long telegramId)
         {
             return await _userRepository.Exists(telegramId);
