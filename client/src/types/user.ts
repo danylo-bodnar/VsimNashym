@@ -1,5 +1,5 @@
 export interface User {
-  id: number
+  telegramId: number
   displayName: string
   profilePhotoFileId: string
   location: Point

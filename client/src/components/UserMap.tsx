@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import { useEffect, useState } from 'react'
-import { getNearbyUsers } from '@/features/users/api'
+import { getNearbyUsers, sendHi } from '@/features/users/api'
 import type { User } from '@/types/user'
 
 export default function UserMap() {
@@ -29,7 +29,6 @@ export default function UserMap() {
     const fetchUsers = async () => {
       try {
         const nearby = await getNearbyUsers(position[0], position[1], 5000)
-        console.log('nearby', nearby)
         setUsers(nearby)
       } catch (err) {
         console.error('Failed to fetch nearby users', err)
@@ -38,6 +37,9 @@ export default function UserMap() {
 
     fetchUsers()
   }, [position])
+  useEffect(() => {
+    console.log('Updated users state:', users)
+  }, [users])
 
   const avatarIcon = (photoId: string | null) =>
     L.icon({
@@ -75,7 +77,17 @@ export default function UserMap() {
               position={[u.location.latitude, u.location.longitude]}
               icon={avatarIcon(u.profilePhotoFileId)}
             >
-              <Popup>{u.displayName}</Popup>
+              <Popup>
+                <div>
+                  <p>{u.displayName}</p>
+                  <button
+                    onClick={() => sendHi(u.telegramId)}
+                    className="bg-blue-500 text-white px-2 py-1 rounded"
+                  >
+                    Say Hi 👋
+                  </button>
+                </div>
+              </Popup>
             </Marker>
           ))}
         </MapContainer>
