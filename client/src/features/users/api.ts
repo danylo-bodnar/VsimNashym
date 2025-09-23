@@ -12,3 +12,9 @@ export async function getNearbyUsers(
   console.log('response data', response.data)
   return response.data
 }
+
+export async function sendHi(targetTelegramId: number): Promise<void> {
+  await apiClient.post('/message/hi', {
+    to: targetTelegramId,
+  })
+}

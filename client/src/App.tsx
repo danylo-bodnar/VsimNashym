@@ -33,8 +33,6 @@ function App() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>Hello, {user?.first_name ?? 'Guest'} 👋</h1>
-      <p>This is running inside Telegram!</p>
       {jwt ? <UserMap /> : <p>Please login to continue.</p>}
       <button onClick={closeApp}>Close Mini App</button>
     </div>
