@@ -1,3 +1,4 @@
+using api.DTOs.Auth;
 using api.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,10 +24,5 @@ namespace api.Controllers
 
             return Ok(new { token });
         }
-    }
-
-    public class TelegramLoginRequest
-    {
-        public long TelegramId { get; set; }
     }
 }

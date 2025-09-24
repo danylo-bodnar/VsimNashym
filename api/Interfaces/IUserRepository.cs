@@ -11,8 +11,8 @@ namespace api.Interfaces
     public interface IUserRepository
     {
         Task<User> CreateAsync(User userModel);
-        Task<List<NearbyUserDto>> GetNearbyUsersAsync(Point currentLocation, double radiusMeters, Guid currentUserId);
-        Task<User?> GetUserByTelegramIdAsync(long telegramId);
+        Task<List<NearbyUserDto>> GetNearbyAsync(Point currentLocation, double radiusMeters, Guid currentUserId);
+        Task<User?> GetByTelegramIdAsync(long telegramId);
         Task<bool> Exists(long telegramId);
     }
 }

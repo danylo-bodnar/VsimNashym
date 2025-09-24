@@ -50,7 +50,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddSingleton<IBotConversationService, BotConversationService>();
-
+builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddSingleton<IBotMessenger, BotMessenger>();
 
 // Controllers
 builder.Services.AddControllers()

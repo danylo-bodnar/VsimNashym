@@ -8,6 +8,7 @@ namespace api.DTOs
 {
     public class NearbyUserDto
     {
+        public long TelegramId { get; set; }
         public string DisplayName { get; set; } = null!;
         public string? ProfilePhotoFileId { get; set; }
         public LocationPoint Location { get; set; } = null!;

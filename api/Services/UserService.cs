@@ -26,10 +26,10 @@ namespace api.Services
             return user;
         }
 
-        public async Task<IEnumerable<NearbyUserDto>> GetNearbyUsersAsync(Guid currentUserId, double lat, double lng, double radiusMeters)
+        public async Task<IEnumerable<NearbyUserDto>> FindNearbyUsersAsync(Guid currentUserId, double lat, double lng, double radiusMeters)
         {
             var currentLocation = new Point(lng, lat) { SRID = 4326 };
-            return await _userRepository.GetNearbyUsersAsync(currentLocation, radiusMeters, currentUserId);
+            return await _userRepository.GetNearbyAsync(currentLocation, radiusMeters, currentUserId);
         }
 
         public async Task<bool> IsUserRegisteredAsync(long telegramId)

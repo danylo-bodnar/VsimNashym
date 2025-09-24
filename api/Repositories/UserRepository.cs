@@ -23,13 +23,14 @@ namespace api.Repositories
             return userModel;
         }
 
-        async public Task<List<NearbyUserDto>> GetNearbyUsersAsync(Point currentLocation, double radiusMeters, Guid currentUserId)
+        async public Task<List<NearbyUserDto>> GetNearbyAsync(Point currentLocation, double radiusMeters, Guid currentUserId)
         {
             return await _db.Users
                             .Where(u => u.Location != null && u.Id != currentUserId)
                             .Where(u => u.Location.Distance(currentLocation) <= radiusMeters)
                             .Select(u => new NearbyUserDto
                             {
+                                TelegramId = u.TelegramId,
                                 DisplayName = u.DisplayName,
                                 ProfilePhotoFileId = u.ProfilePhotoFileId,
                                 Location = new LocationPoint
@@ -42,7 +43,7 @@ namespace api.Repositories
         }
 
 
-        public async Task<User?> GetUserByTelegramIdAsync(long telegramId)
+        public async Task<User?> GetByTelegramIdAsync(long telegramId)
         {
             return await _db.Users.FirstOrDefaultAsync(u => u.TelegramId == telegramId);
         }
