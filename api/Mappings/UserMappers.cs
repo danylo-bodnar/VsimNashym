@@ -9,7 +9,7 @@ namespace api.Mappings
 {
     public static class UserMappers
     {
-        public static User ToUserFromRegisterDto(this RegisterUserDto dto)
+        public static User ToEntity(this RegisterUserDto dto)
         {
             return new User
             {

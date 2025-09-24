@@ -41,6 +41,7 @@ if (string.IsNullOrWhiteSpace(botToken))
 
 //Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IConnectionRepository, ConnectionRepository>();
 
 // Services
 builder.Services.AddSingleton<ITelegramBotClient>(_ =>
@@ -52,6 +53,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddSingleton<IBotConversationService, BotConversationService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddSingleton<IBotMessenger, BotMessenger>();
+builder.Services.AddScoped<IConnectionService, ConnectionService>();
 
 // Controllers
 builder.Services.AddControllers()
