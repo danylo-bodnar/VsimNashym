@@ -10,7 +10,7 @@ namespace api.Interfaces
     public interface IUserService
     {
         Task<User?> RegisterUserAsync(RegisterUserDto dto);
-        Task<IEnumerable<NearbyUserDto>> GetNearbyUsersAsync(Guid currentUserId, double lat, double lng, double radiusMeters);
+        Task<IEnumerable<NearbyUserDto>> FindNearbyUsersAsync(Guid currentUserId, double lat, double lng, double radiusMeters);
         Task<bool> IsUserRegisteredAsync(long telegramId);
     }
 }

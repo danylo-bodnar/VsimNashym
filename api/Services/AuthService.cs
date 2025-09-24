@@ -20,7 +20,7 @@ namespace api.Services
 
         public async Task<string?> LoginWithTelegramAsync(long telegramId)
         {
-            var user = await _userRepository.GetUserByTelegramIdAsync(telegramId);
+            var user = await _userRepository.GetByTelegramIdAsync(telegramId);
             if (user == null)
             {
                 _logger.LogWarning("Telegram login failed: {TelegramId} not registered", telegramId);
@@ -30,8 +30,9 @@ namespace api.Services
             var claims = new[]
             {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.UniqueName, user.DisplayName)
-        };
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.DisplayName),
+            new Claim("telegram_id", user.TelegramId.ToString())
+           };
 
             var token = _tokenService.GenerateToken(claims);
             _logger.LogInformation("Telegram login successful: {TelegramId}", telegramId);

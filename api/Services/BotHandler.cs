@@ -16,17 +16,19 @@ namespace api.Services
         private readonly IBotConversationService _conversationService;
         private readonly IUserService _userService;
         private readonly ILogger<BotHandler> _logger;
+        private readonly IBotMessenger _botMessenger;
 
         public BotHandler(
             ITelegramBotClient botClient,
             IBotConversationService conversationService,
             IUserService userService,
-            ILogger<BotHandler> logger)
+            ILogger<BotHandler> logger, IBotMessenger botMessenger)
         {
             _botClient = botClient;
             _conversationService = conversationService;
             _userService = userService;
             _logger = logger;
+            _botMessenger = botMessenger;
         }
 
         public async Task HandleUpdateAsync(Update update)
@@ -82,12 +84,12 @@ namespace api.Services
                 {
                     if (await _userService.IsUserRegisteredAsync(telegramId))
                     {
-                        await SendMessageSafeAsync(chatId, "You are already registered!");
+                        await _botMessenger.SendMessageSafeAsync(chatId, "You are already registered!");
                         return;
                     }
                     var newState = new UserConversationState { Step = ConversationStep.WaitingForDisplayName };
                     _conversationService.SetState(telegramId, newState);
-                    await SendMessageSafeAsync(chatId, "Welcome! Please send your display name.");
+                    await _botMessenger.SendMessageSafeAsync(chatId, "Welcome! Please send your display name.");
                     return;
                 }
 
@@ -95,7 +97,7 @@ namespace api.Services
                 {
                     if (string.IsNullOrWhiteSpace(text) || text.Length > 50)
                     {
-                        await SendMessageSafeAsync(chatId, "Invalid display name. Try again (max 50 chars).");
+                        await _botMessenger.SendMessageSafeAsync(chatId, "Invalid display name. Try again (max 50 chars).");
                         return;
                     }
 
@@ -104,7 +106,7 @@ namespace api.Services
                     _conversationService.SetState(telegramId, state);
 
 
-                    await SendMessageSafeAsync(chatId, "Please enter your age.");
+                    await _botMessenger.SendMessageSafeAsync(chatId, "Please enter your age.");
                     return;
                 }
 
@@ -112,7 +114,7 @@ namespace api.Services
                 {
                     if (string.IsNullOrWhiteSpace(text) || !int.TryParse(text, out int age) || age < 13 || age > 120)
                     {
-                        await SendMessageSafeAsync(chatId, "Please enter a valid age (between 13 and 120).");
+                        await _botMessenger.SendMessageSafeAsync(chatId, "Please enter a valid age (between 13 and 120).");
                         return;
                     }
 
@@ -120,7 +122,7 @@ namespace api.Services
                     state.Step = ConversationStep.WaitingForPhoto;
                     _conversationService.SetState(telegramId, state);
 
-                    await SendMessageSafeAsync(chatId, "Please send a photo.");
+                    await _botMessenger.SendMessageSafeAsync(chatId, "Please send a photo.");
                     return;
                 }
 
@@ -128,7 +130,7 @@ namespace api.Services
                 {
                     if (message.Photo == null || message.Photo.Length == 0)
                     {
-                        await SendMessageSafeAsync(chatId, "A photo is required to continue registration. Please send a valid photo.");
+                        await _botMessenger.SendMessageSafeAsync(chatId, "A photo is required to continue registration. Please send a valid photo.");
                         return;
                     }
 
@@ -137,7 +139,7 @@ namespace api.Services
 
                     if (string.IsNullOrEmpty(photoFileId))
                     {
-                        await SendMessageSafeAsync(chatId, "Invalid photo. Please try sending a valid photo.");
+                        await _botMessenger.SendMessageSafeAsync(chatId, "Invalid photo. Please try sending a valid photo.");
                         return;
                     }
 
@@ -155,14 +157,14 @@ namespace api.Services
                         OneTimeKeyboard = true
                     };
 
-                    await SendMessageSafeAsync(chatId, "Please share your location.", keyboard);
+                    await _botMessenger.SendMessageSafeAsync(chatId, "Please share your location.", keyboard);
                     return;
                 }
                 if (state.Step == ConversationStep.WaitingForLocation)
                 {
                     if (message.Location == null)
                     {
-                        await SendMessageSafeAsync(chatId, "Please share a valid location.");
+                        await _botMessenger.SendMessageSafeAsync(chatId, "Please share a valid location.");
                         return;
                     }
 
@@ -178,7 +180,7 @@ namespace api.Services
                         OneTimeKeyboard = true
                     };
 
-                    await SendMessageSafeAsync(chatId, "Location received! Please write a short bio (or press 'Skip').", keyboard);
+                    await _botMessenger.SendMessageSafeAsync(chatId, "Location received! Please write a short bio (or press 'Skip').", keyboard);
                     return;
                 }
 
@@ -188,7 +190,7 @@ namespace api.Services
 
                     if (bio?.Length > 200)
                     {
-                        await SendMessageSafeAsync(chatId, "Bio too long. Try again (max 200 chars).");
+                        await _botMessenger.SendMessageSafeAsync(chatId, "Bio too long. Try again (max 200 chars).");
                         return;
                     }
 
@@ -210,12 +212,12 @@ namespace api.Services
                     var user = await _userService.RegisterUserAsync(dto);
                     if (user == null)
                     {
-                        await SendMessageSafeAsync(chatId, "You are already registered!");
+                        await _botMessenger.SendMessageSafeAsync(chatId, "You are already registered!");
                         _conversationService.Reset(telegramId);
                         return;
                     }
 
-                    await SendPhotoSafeAsync(
+                    await _botMessenger.SendPhotoSafeAsync(
                             chatId,
                             user.ProfilePhotoFileId,
                             $"✅ Registration complete!\n" +
@@ -230,44 +232,16 @@ namespace api.Services
                 }
                 else
                 {
-                    await SendMessageSafeAsync(chatId, "Unknown command. Send /register to start.");
+                    await _botMessenger.SendMessageSafeAsync(chatId, "Unknown command. Send /register to start.");
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling update for TelegramId {TelegramId}", telegramId);
-                await SendMessageSafeAsync(chatId, "Sorry, something went wrong. Try /register again.");
+                await _botMessenger.SendMessageSafeAsync(chatId, "Sorry, something went wrong. Try /register again.");
                 _conversationService.Reset(telegramId);
             }
         }
-        private async Task SendMessageSafeAsync(long chatId, string text, ReplyKeyboardMarkup? keyboard = null)
-        {
-            try
-            {
-                if (keyboard != null)
-                {
-                    await _botClient.SendMessage(chatId, text, replyMarkup: keyboard);
-                }
-                else
-                {
-                    await _botClient.SendMessage(chatId, text);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to send message to chat {ChatId}: {Text}", chatId, text);
-            }
-        }
-        private async Task SendPhotoSafeAsync(long chatId, string ProfilePhotoFileId, string? description = null)
-        {
-            try
-            {
-                await _botClient.SendPhoto(chatId, ProfilePhotoFileId, description);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to send a photo to chat {ChatId}, with photoUrl {Photo}", chatId, ProfilePhotoFileId);
-            }
-        }
+
     }
 }

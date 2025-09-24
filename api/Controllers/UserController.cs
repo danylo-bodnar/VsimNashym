@@ -25,7 +25,7 @@ namespace api.Controllers
             if (!Guid.TryParse(userIdStr, out var currentUserId))
                 return Unauthorized();
 
-            var nearbyUsers = await _userService.GetNearbyUsersAsync(currentUserId, lat, lng, radiusMeters);
+            var nearbyUsers = await _userService.FindNearbyUsersAsync(currentUserId, lat, lng, radiusMeters);
             return Ok(nearbyUsers);
         }
 
