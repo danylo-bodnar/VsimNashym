@@ -20,7 +20,7 @@ namespace api.Services
             var exists = await _userRepository.Exists(dto.TelegramId);
             if (exists) return null;
 
-            var userModel = dto.ToUserFromRegisterDto();
+            var userModel = dto.ToEntity();
 
             var user = await _userRepository.CreateAsync(userModel);
             return user;

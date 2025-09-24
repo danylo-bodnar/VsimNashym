@@ -17,22 +17,30 @@ namespace api.Services
         private readonly IUserService _userService;
         private readonly ILogger<BotHandler> _logger;
         private readonly IBotMessenger _botMessenger;
+        private readonly IConnectionService _connectionService;
 
         public BotHandler(
             ITelegramBotClient botClient,
             IBotConversationService conversationService,
             IUserService userService,
-            ILogger<BotHandler> logger, IBotMessenger botMessenger)
+            ILogger<BotHandler> logger, IBotMessenger botMessenger, IConnectionService connectionService)
         {
             _botClient = botClient;
             _conversationService = conversationService;
             _userService = userService;
             _logger = logger;
             _botMessenger = botMessenger;
+            _connectionService = connectionService;
         }
 
         public async Task HandleUpdateAsync(Update update)
         {
+            if (update.Type == UpdateType.CallbackQuery)
+            {
+                await HandleCallbackQueryAsync(update.CallbackQuery!);
+                return;
+            }
+
             if (update.Type != UpdateType.Message) return;
 
             var message = update.Message;
@@ -242,6 +250,36 @@ namespace api.Services
                 _conversationService.Reset(telegramId);
             }
         }
+        private async Task HandleCallbackQueryAsync(CallbackQuery callbackQuery)
+        {
+            long telegramId = callbackQuery.From.Id;
+            string? data = callbackQuery.Data;
 
+            if (string.IsNullOrEmpty(data))
+                return;
+
+            if (data.StartsWith("accept:") && int.TryParse(data.Split(':')[1], out int connectionId))
+            {
+                var connection = await _connectionService.AcceptConnectionAsync(connectionId);
+
+                if (callbackQuery.Message != null)
+                {
+                    await _botMessenger.EditMessageReplyMarkupSafeAsync(
+                            chatId: callbackQuery.Message.Chat.Id,
+                            messageId: callbackQuery.Message.MessageId,
+                            newText: "✅ Connection accepted!",
+                            keyboard: null
+                        );
+                }
+
+                if (connection != null)
+                {
+                    await _botMessenger.SendMessageSafeAsync(
+                        connection.FromTelegramId,
+                        $"Your hi was accepted by {callbackQuery.From.FirstName}!"
+                    );
+                }
+            }
+        }
     }
 }

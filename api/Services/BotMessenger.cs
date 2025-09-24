@@ -19,7 +19,7 @@ namespace api.Services
             _logger = logger;
         }
 
-        public async Task SendMessageSafeAsync(long chatId, string text, ReplyKeyboardMarkup? keyboard = null)
+        public async Task SendMessageSafeAsync(long chatId, string text, ReplyMarkup? keyboard = null)
         {
             try
             {
@@ -50,5 +50,32 @@ namespace api.Services
             }
         }
 
+        public async Task EditMessageReplyMarkupSafeAsync(long chatId, int messageId, InlineKeyboardMarkup? keyboard = null, string? newText = null)
+        {
+            try
+            {
+                if (newText != null)
+                {
+                    await _botClient.EditMessageText(
+                        chatId: chatId,
+                        messageId: messageId,
+                        text: newText,
+                        replyMarkup: keyboard
+                    );
+                }
+                else
+                {
+                    await _botClient.EditMessageReplyMarkup(
+                        chatId: chatId,
+                        messageId: messageId,
+                        replyMarkup: keyboard
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to edit message {MessageId} in chat {ChatId}", messageId, chatId);
+            }
+        }
     }
 }
