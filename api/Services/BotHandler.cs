@@ -18,12 +18,14 @@ namespace api.Services
         private readonly ILogger<BotHandler> _logger;
         private readonly IBotMessenger _botMessenger;
         private readonly IConnectionService _connectionService;
+        private readonly IChatSessionsRepository _chatSessionsRepository;
+        private readonly IChatMessageService _chatMessageService;
 
         public BotHandler(
             ITelegramBotClient botClient,
             IBotConversationService conversationService,
             IUserService userService,
-            ILogger<BotHandler> logger, IBotMessenger botMessenger, IConnectionService connectionService)
+            ILogger<BotHandler> logger, IBotMessenger botMessenger, IConnectionService connectionService, IChatSessionsRepository chatSessionsRepository, IChatMessageService chatMessageService)
         {
             _botClient = botClient;
             _conversationService = conversationService;
@@ -31,6 +33,8 @@ namespace api.Services
             _logger = logger;
             _botMessenger = botMessenger;
             _connectionService = connectionService;
+            _chatSessionsRepository = chatSessionsRepository;
+            _chatMessageService = chatMessageService;
         }
 
         public async Task HandleUpdateAsync(Update update)
@@ -54,40 +58,6 @@ namespace api.Services
 
             try
             {
-                // if (state.Step == ConversationStep.WaitingForPhoto && message.Photo != null && message.Photo.Length > 0)
-                // {
-                //     var photo = message.Photo.Last();
-                //     string photoUrl = photo.FileId;
-
-                //     if (string.IsNullOrEmpty(photoUrl))
-                //     {
-                //         await SendMessageSafeAsync(chatId, "Invalid photo. Please try sending again.");
-                //         return;
-                //     }
-
-                //     state.TempProfilePhotoFileId = photoUrl;
-                //     state.Step = ConversationStep.WaitingForLocation;
-                //     _conversationService.SetState(telegramId, state);
-
-                //     var keyboard = new ReplyKeyboardMarkup(new[]
-                //  {
-                //             KeyboardButton.WithRequestLocation("Share Location")
-                //             })
-                //     {
-                //         ResizeKeyboard = true,
-                //         OneTimeKeyboard = true
-                //     };
-
-                //     await SendMessageSafeAsync(chatId, "Please share your location.", keyboard);
-                //     return;
-                // }
-
-                // if (string.IsNullOrEmpty(text) && state.Step != ConversationStep.WaitingForPhoto)
-                // {
-                //     await SendMessageSafeAsync(chatId, "Please send text messages or a photo when prompted.");
-                //     return;
-                // }
-
                 if (text == "/register")
                 {
                     if (await _userService.IsUserRegisteredAsync(telegramId))
@@ -240,6 +210,23 @@ namespace api.Services
                 }
                 else
                 {
+                    // Direct Messaging Relay 
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        var chatSession = await _chatSessionsRepository.GetByUserAsync(telegramId);
+                        if (chatSession != null)
+                        {
+
+                            long otherUserId = chatSession.User1TelegramId == telegramId
+                                ? chatSession.User2TelegramId
+                                : chatSession.User1TelegramId;
+
+
+                            await _chatMessageService.SendDirectMessageAsync(telegramId, otherUserId, text);
+                            return;
+                        }
+                    }
+
                     await _botMessenger.SendMessageSafeAsync(chatId, "Unknown command. Send /register to start.");
                 }
             }
@@ -279,6 +266,7 @@ namespace api.Services
                         $"Your hi was accepted by {callbackQuery.From.FirstName}!"
                     );
                 }
+                return;
             }
         }
     }

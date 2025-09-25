@@ -1,3 +1,4 @@
+using api.DTOs.ChatSessions;
 using api.DTOs.Connections;
 using api.Interfaces;
 using api.Mappings;
@@ -8,10 +9,12 @@ namespace api.Services
     public class ConnectionService : IConnectionService
     {
         private readonly IConnectionRepository _connectionRepository;
+        private readonly IChatSessionsRepository _chatSessionsRepository;
 
-        public ConnectionService(IConnectionRepository repository)
+        public ConnectionService(IConnectionRepository repository, IChatSessionsRepository chatSessionsRepository)
         {
             _connectionRepository = repository;
+            _chatSessionsRepository = chatSessionsRepository;
         }
 
         public async Task<Connection> CreateConnectionAsync(CreateConnectionDto dto)
@@ -25,6 +28,12 @@ namespace api.Services
         async public Task<Connection> AcceptConnectionAsync(int connectionId)
         {
             var connection = await _connectionRepository.AcceptAsync(connectionId);
+
+            await _chatSessionsRepository.CreateAsync(new CreateChatSessionDto
+            {
+                User1TelegramId = connection.FromTelegramId,
+                User2TelegramId = connection.ToTelegramId
+            });
 
             return connection;
         }
