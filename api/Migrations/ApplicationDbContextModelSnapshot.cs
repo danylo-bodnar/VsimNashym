@@ -24,6 +24,64 @@ namespace api.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("api.Models.ChatMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChatSessionId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("FromTelegramId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("ToTelegramId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatSessionId");
+
+                    b.ToTable("ChatMessages", (string)null);
+                });
+
+            modelBuilder.Entity("api.Models.ChatSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<long>("User1TelegramId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("User2TelegramId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("User1TelegramId", "User2TelegramId")
+                        .IsUnique();
+
+                    b.ToTable("ChatSessions", (string)null);
+                });
+
             modelBuilder.Entity("api.Models.Connection", b =>
                 {
                     b.Property<int>("Id")
@@ -51,7 +109,7 @@ namespace api.Migrations
                     b.HasIndex("FromTelegramId", "ToTelegramId")
                         .IsUnique();
 
-                    b.ToTable("Connections");
+                    b.ToTable("Connections", (string)null);
                 });
 
             modelBuilder.Entity("api.Models.User", b =>
@@ -91,7 +149,18 @@ namespace api.Migrations
                     b.HasIndex("TelegramId")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("api.Models.ChatMessage", b =>
+                {
+                    b.HasOne("api.Models.ChatSession", "ChatSession")
+                        .WithMany()
+                        .HasForeignKey("ChatSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChatSession");
                 });
 #pragma warning restore 612, 618
         }
