@@ -12,7 +12,6 @@ namespace api.Services
 {
     public class BotHandler
     {
-        private readonly ITelegramBotClient _botClient;
         private readonly IBotConversationService _conversationService;
         private readonly IUserService _userService;
         private readonly ILogger<BotHandler> _logger;
@@ -20,12 +19,10 @@ namespace api.Services
         private readonly IConnectionService _connectionService;
 
         public BotHandler(
-            ITelegramBotClient botClient,
             IBotConversationService conversationService,
             IUserService userService,
             ILogger<BotHandler> logger, IBotMessenger botMessenger, IConnectionService connectionService)
         {
-            _botClient = botClient;
             _conversationService = conversationService;
             _userService = userService;
             _logger = logger;
@@ -218,6 +215,7 @@ namespace api.Services
         }
         private async Task HandleCallbackQueryAsync(CallbackQuery callbackQuery)
         {
+            var userName = callbackQuery.From.Username;
             long telegramId = callbackQuery.From.Id;
             string? data = callbackQuery.Data;
 
@@ -240,9 +238,23 @@ namespace api.Services
 
                 if (connection != null)
                 {
+                    string contactInfo;
+
+                    if (!string.IsNullOrEmpty(userName))
+                    {
+                        contactInfo = $"{callbackQuery.From.FirstName} accepted your hi! 🎉\n" +
+                        $"You can now chat directly: @{userName}";
+                    }
+                    else
+                    {
+                        contactInfo = $"{callbackQuery.From.FirstName} accepted your hi! 🎉\n" +
+                                      $"⚠️ This person does not have a Telegram username. " +
+                                      $"You can only chat here inside the bot.";
+                    }
+
                     await _botMessenger.SendMessageSafeAsync(
                         connection.FromTelegramId,
-                        $"Your hi was accepted by {callbackQuery.From.FirstName}!"
+                        contactInfo
                     );
                 }
                 return;
