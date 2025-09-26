@@ -42,8 +42,6 @@ if (string.IsNullOrWhiteSpace(botToken))
 //Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IConnectionRepository, ConnectionRepository>();
-builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
-builder.Services.AddScoped<IChatSessionsRepository, ChatSessionRepository>();
 
 // Services
 builder.Services.AddSingleton<ITelegramBotClient>(_ =>
@@ -56,7 +54,6 @@ builder.Services.AddSingleton<IBotConversationService, BotConversationService>()
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddSingleton<IBotMessenger, BotMessenger>();
 builder.Services.AddScoped<IConnectionService, ConnectionService>();
-builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
 
 // Controllers
 builder.Services.AddControllers()

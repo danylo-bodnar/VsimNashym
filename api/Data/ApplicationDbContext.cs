@@ -11,8 +11,6 @@ namespace api.Data
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Connection> Connections { get; set; }
-        public DbSet<ChatSession> ChatSessions { get; set; }
-        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options) { }
@@ -35,12 +33,6 @@ namespace api.Data
                 entity.Property(h => h.CreatedAt).HasDefaultValueSql("NOW()");
             });
 
-            modelBuilder.Entity<ChatSession>(entity =>
-            {
-                entity.HasKey(c => c.Id);
-                entity.HasIndex(c => new { c.User1TelegramId, c.User2TelegramId }).IsUnique();
-                entity.Property(c => c.CreatedAt).HasDefaultValueSql("NOW()");
-            });
         }
     }
 }
