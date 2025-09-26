@@ -483,3 +483,5 @@ $RECYCLE.BIN/
 .azure
 
 .env
+
+api/Migrations/*.Designer.cs

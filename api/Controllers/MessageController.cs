@@ -23,6 +23,13 @@ namespace api.Controllers
         [HttpPost("hi")]
         public async Task<IActionResult> SendHi([FromBody] HiDto dto)
         {
+            if (dto == null)
+                return BadRequest("Invalid request body.");
+
+            var telegramId = User?.GetTelegramId();
+            if (telegramId == null)
+                return Unauthorized("User is not authenticated or missing TelegramId.");
+
             await _messageService.SendHiAsync(User.GetTelegramId(), dto.To);
             return Ok();
         }
