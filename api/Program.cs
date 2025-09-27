@@ -8,6 +8,8 @@ using api.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using api.Options;
+using FluentValidation;
+using api.Exceptions;
 
 Env.Load();
 
@@ -16,6 +18,19 @@ var builder = WebApplication.CreateBuilder(args);
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Exceptions
+builder.Services.AddProblemDetails(configure =>
+{
+    configure.CustomizeProblemDetails = context =>
+    {
+        context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+    };
+});
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+// Validation
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly, includeInternalTypes: true);
 
 // DB
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -118,6 +133,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
+
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 

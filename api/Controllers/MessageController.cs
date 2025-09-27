@@ -23,8 +23,6 @@ namespace api.Controllers
         [HttpPost("hi")]
         public async Task<IActionResult> SendHi([FromBody] HiDto dto)
         {
-            if (dto == null)
-                return BadRequest("Invalid request body.");
 
             var telegramId = User?.GetTelegramId();
             if (telegramId == null)
