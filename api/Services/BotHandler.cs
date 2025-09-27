@@ -197,7 +197,6 @@ namespace api.Services
         }
         private async Task HandleCallbackQueryAsync(CallbackQuery callbackQuery)
         {
-            var userName = callbackQuery.From.Username;
             long telegramId = callbackQuery.From.Id;
             string? data = callbackQuery.Data;
 
@@ -211,36 +210,28 @@ namespace api.Services
                 if (callbackQuery.Message != null)
                 {
                     await _botMessenger.EditMessageReplyMarkupSafeAsync(
-                            chatId: callbackQuery.Message.Chat.Id,
-                            messageId: callbackQuery.Message.MessageId,
-                            newText: "✅ Connection accepted!",
-                            keyboard: null
-                        );
+                        chatId: callbackQuery.Message.Chat.Id,
+                        messageId: callbackQuery.Message.MessageId,
+                        newText: "✅ Connection accepted!",
+                        keyboard: null
+                    );
                 }
 
                 if (connection != null)
                 {
-                    string contactInfo;
+                    string contactLink = $"tg://user?id={telegramId}";
 
-                    if (!string.IsNullOrEmpty(userName))
-                    {
-                        contactInfo = $"{callbackQuery.From.FirstName} accepted your hi! 🎉\n" +
-                        $"You can now chat directly: @{userName}";
-                    }
-                    else
-                    {
-                        contactInfo = $"{callbackQuery.From.FirstName} accepted your hi! 🎉\n" +
-                                      $"⚠️ This person does not have a Telegram username. " +
-                                      $"You can only chat here inside the bot.";
-                    }
+                    string contactInfo =
+                        $"{callbackQuery.From.FirstName} accepted your hi! 🎉\n" +
+                        $"You can now chat directly with {contactLink}";
 
                     await _botMessenger.SendMessageSafeAsync(
                         connection.FromTelegramId,
                         contactInfo
                     );
                 }
-                return;
             }
         }
+
     }
 }
