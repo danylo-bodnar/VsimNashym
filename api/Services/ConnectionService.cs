@@ -16,6 +16,13 @@ namespace api.Services
 
         public async Task<Connection> CreateConnectionAsync(CreateConnectionDto dto)
         {
+            bool exists = await _connectionRepository.ExistsAsync(dto.FromTelegramId, dto.ToTelegramId);
+
+            if (exists)
+            {
+                throw new ApplicationException("Connection already exists");
+            }
+
             var connectionModel = dto.ToEntity();
             var connection = await _connectionRepository.CreateAsync(connectionModel);
 
