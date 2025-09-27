@@ -15,7 +15,7 @@ function App() {
 
       try {
         // Here we assume `user.id` is Telegram user ID
-        const token = await telegramLogin(user.telegramId)
+        const token = await telegramLogin(user.id)
         setJwt(token)
       } catch (err: any) {
         console.error('Login failed', err)
