@@ -35,6 +35,11 @@ namespace api.Services
 
             var fromUser = await _userRepository.GetByTelegramIdAsync(fromTelegramId);
 
+            if (fromUser == null)
+            {
+                throw new InvalidOperationException($"User with TelegramId {fromTelegramId} does not exist.");
+            }
+
             var keyboard = new InlineKeyboardMarkup(new[]
             {
             new[]
@@ -43,7 +48,7 @@ namespace api.Services
             }
             });
 
-            await _botMessenger.SendMessageSafeAsync(toTelegramId, $"{fromUser.DisplayName} says hi 👋", keyboard);
+            await _botMessenger.SendMessageSafeAsync(toTelegramId, $"{fromUser!.DisplayName} says hi 👋", keyboard);
         }
     }
 }

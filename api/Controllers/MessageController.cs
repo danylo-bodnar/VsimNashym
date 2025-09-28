@@ -1,6 +1,7 @@
 using api.DTOs;
 using api.Extensions;
 using api.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -13,7 +14,7 @@ namespace api.Controllers
         {
             _messageService = messageService;
         }
-
+        [Authorize]
         [HttpPost("hi")]
         public async Task<IActionResult> SendHi([FromBody] HiDto dto)
         {
