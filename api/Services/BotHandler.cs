@@ -181,7 +181,7 @@ namespace api.Services
                     await _botMessenger.SendPhotoSafeAsync(
                         chatId,
                         user.ProfilePhotoFileId,
-                        $"✅ Registration complete!\nDisplay Name: {user.DisplayName}\nAge: {user.Age}\nBio: {user.Bio ?? "None"}"
+                        $"✅ Registration complete!\nDisplay Name: {user.DisplayName}\nAge: {user.Age}\nBio: {user.Bio ?? "None"}", new ReplyKeyboardRemove()
                     );
 
                     _conversationService.Reset(telegramId);

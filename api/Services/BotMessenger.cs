@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Interfaces;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace api.Services
@@ -38,15 +39,31 @@ namespace api.Services
             }
         }
 
-        public async Task SendPhotoSafeAsync(long chatId, string ProfilePhotoFileId, string? description = null)
+        public async Task SendPhotoSafeAsync(
+           long chatId,
+           string photo,
+           string? caption = null,
+           ReplyMarkup? replyMarkup = null,
+           CancellationToken cancellationToken = default)
         {
             try
             {
-                await _botClient.SendPhoto(chatId, ProfilePhotoFileId, description);
+                await _botClient.SendPhoto(
+                    chatId: chatId,
+                    photo: photo,
+                    caption: caption,
+                    replyMarkup: replyMarkup,
+                    cancellationToken: cancellationToken
+                );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send a photo to chat {ChatId}, with photoUrl {Photo}", chatId, ProfilePhotoFileId);
+                _logger.LogError(
+                    ex,
+                    "Failed to send a photo to chat {ChatId}, with photo {Photo}",
+                    chatId,
+                    photo
+                );
             }
         }
 
