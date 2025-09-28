@@ -1,3 +1,4 @@
+import type { TelegramWebAppUser } from '@/types/telegram'
 import type { User } from '@/types/user'
 
 declare global {
@@ -19,7 +20,7 @@ export function useTelegram() {
 
   return {
     tg,
-    user: tg.initDataUnsafe?.user,
+    user: tg.initDataUnsafe?.user as TelegramWebAppUser | undefined,
     closeApp: () => tg.close(),
     expand: () => tg.expand(),
   }

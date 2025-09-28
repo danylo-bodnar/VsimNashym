@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTelegram } from './hooks/useTelegram'
 import UserMap from './components/UserMap'
 import { telegramLogin } from '@/features/auth/api'
+import { mapTelegramUserToDto } from './types/telegram'
 
 function App() {
   const { tg, user, closeApp } = useTelegram()
@@ -14,8 +15,11 @@ function App() {
       if (!tg || !user) return
 
       try {
-        // Here we assume `user.id` is Telegram user ID
-        const token = await telegramLogin(user.id)
+        const dto = mapTelegramUserToDto(user, {
+          latitude: 58.1467,
+          longitude: 7.9956,
+        })
+        const token = await telegramLogin(dto.telegramId)
         setJwt(token)
       } catch (err: any) {
         console.error('Login failed', err)
@@ -28,15 +32,14 @@ function App() {
     initAuth()
   }, [tg, user])
 
+  useEffect(() => {
+    console.log('jwt', jwt)
+  }, [jwt])
+
   if (loading) return <p>Loading...</p>
   if (error) return <p>Error: {error}</p>
 
-  return (
-    <div style={{ padding: 20 }}>
-      {jwt ? <UserMap /> : <p>Please login to continue.</p>}
-      <button onClick={closeApp}>Close Mini App</button>
-    </div>
-  )
+  return <div>{jwt ? <UserMap /> : <p>Please login to continue.</p>}</div>
 }
 
 export default App

@@ -13,6 +13,7 @@ export default function UserMap() {
       navigator.geolocation.getCurrentPosition(
         (pos) => setPosition([pos.coords.latitude, pos.coords.longitude]),
         (err) => {
+          // TODO: rewrite it
           console.error('Geo error', err)
           setPosition([58.1467, 7.9956]) // fallback to Kristiansand
         }
@@ -22,7 +23,6 @@ export default function UserMap() {
     }
   }, [])
 
-  // // Fetch nearby users whenever position is available
   useEffect(() => {
     if (!position) return
 
@@ -50,7 +50,7 @@ export default function UserMap() {
     })
 
   return (
-    <div style={{ height: '400px', width: '100%' }}>
+    <div className="w-screen h-screen  ">
       {position && (
         <MapContainer
           center={position}
@@ -58,8 +58,8 @@ export default function UserMap() {
           style={{ height: '100%', width: '100%' }}
         >
           <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
 
           {/* Current user marker */}
@@ -73,7 +73,7 @@ export default function UserMap() {
           {/* Other users */}
           {users.map((u) => (
             <Marker
-              key={u.profilePhotoFileId}
+              key={u.telegramId}
               position={[u.location.latitude, u.location.longitude]}
               icon={avatarIcon(u.profilePhotoFileId)}
             >
