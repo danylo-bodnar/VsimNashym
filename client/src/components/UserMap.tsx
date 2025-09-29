@@ -28,6 +28,7 @@ export default function UserMap() {
 
     const fetchUsers = async () => {
       try {
+        // TODO: avoid hardcoding distance value
         const nearby = await getNearbyUsers(position[0], position[1], 5000)
         setUsers(nearby)
       } catch (err) {
