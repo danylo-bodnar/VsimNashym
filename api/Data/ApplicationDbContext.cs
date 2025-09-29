@@ -33,6 +33,22 @@ namespace api.Data
                 entity.Property(h => h.CreatedAt).HasDefaultValueSql("NOW()");
             });
 
+            foreach (var entity in modelBuilder.Model.GetEntityTypes())
+            {
+                var tableName = entity.GetTableName();
+                if (tableName != null)
+                    entity.SetTableName(tableName.ToLower());
+
+                foreach (var property in entity.GetProperties())
+                {
+                    var columnName = property.GetColumnName();
+                    if (columnName != null)
+                        property.SetColumnName(columnName.ToLower());
+                }
+            }
+
+            base.OnModelCreating(modelBuilder);
+
         }
     }
 }
