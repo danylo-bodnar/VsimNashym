@@ -38,9 +38,6 @@ export default function UserMap() {
 
     fetchUsers()
   }, [position])
-  useEffect(() => {
-    console.log('Updated users state:', users)
-  }, [users])
 
   const avatarIcon = (photoId: string | null) =>
     L.icon({
@@ -51,35 +48,28 @@ export default function UserMap() {
     })
 
   return (
-    <div className="w-screen h-screen  ">
-      {position && (
-        <MapContainer
-          center={position}
-          zoom={13}
-          style={{ height: '100%', width: '100%' }}
-        >
+    <div className="h-full w-full">
+      {position ? (
+        <MapContainer center={position} zoom={13} className="h-full w-full">
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
+            attribution="&copy; OpenStreetMap contributors &copy; CARTO"
             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
 
           {/* Current user marker */}
-          <Marker
-            position={position}
-            icon={avatarIcon(null)} // Use fallback for current user
-          >
+          <Marker position={position} icon={avatarIcon(null)}>
             <Popup>You are here</Popup>
           </Marker>
 
-          {/* Other users */}
+          {/* Nearby users */}
           {users.map((u) => (
             <Marker
               key={u.telegramId}
               position={[u.location.latitude, u.location.longitude]}
-              icon={avatarIcon(u.profilePhotoFileId)}
+              icon={avatarIcon(u.profilePhotos[0])}
             >
               <Popup>
-                <div>
+                <div className="flex flex-col gap-2">
                   <p>{u.displayName}</p>
                   <button
                     onClick={() => sendHi(u.telegramId)}
@@ -92,6 +82,10 @@ export default function UserMap() {
             </Marker>
           ))}
         </MapContainer>
+      ) : (
+        <div className="flex items-center justify-center h-full w-full">
+          <p>Locating you...</p>
+        </div>
       )}
     </div>
   )

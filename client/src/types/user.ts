@@ -1,11 +1,16 @@
-export interface User {
+export type User = {
   telegramId: number
   displayName: string
-  profilePhotoFileId: string
-  location: Point
+  age: number
+  bio?: string
+  interests: string[]
+  lookingFor: string[]
+  languages: string[]
+  profilePhotos: string[]
+  location: LocationPoint
 }
 
-interface Point {
+export interface LocationPoint {
   latitude: number
   longitude: number
 }
