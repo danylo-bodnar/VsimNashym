@@ -27,6 +27,7 @@ builder.Services.AddProblemDetails(configure =>
         context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
     };
 });
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // Validation
@@ -65,10 +66,25 @@ builder.Services.AddScoped<BotHandler>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddSingleton<IBotConversationService, BotConversationService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddSingleton<IBotMessenger, BotMessenger>();
 builder.Services.AddScoped<IConnectionService, ConnectionService>();
+builder.Services.AddSingleton<IFileStorageService>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+
+    var botToken = configuration["DISCORD_BOT_TOKEN"];
+    var channelIdStr = configuration["DISCORD_CHANNEL_ID"];
+
+    if (string.IsNullOrWhiteSpace(botToken))
+        throw new InvalidOperationException("Discord BotToken is not configured.");
+
+    if (string.IsNullOrWhiteSpace(channelIdStr) || !ulong.TryParse(channelIdStr, out var channelId))
+        throw new InvalidOperationException("Discord ChannelId is not configured or invalid.");
+
+    return new DiscordFileStorageService(botToken, channelId);
+});
+
 
 // Controllers
 builder.Services.AddControllers()
