@@ -1,3 +1,8 @@
+export type ProfilePhoto = {
+  url: string
+  messageId?: string
+}
+
 export type User = {
   telegramId: number
   displayName: string
@@ -6,8 +11,17 @@ export type User = {
   interests: string[]
   lookingFor: string[]
   languages: string[]
-  profilePhotos: string[]
+  profilePhotos: ProfilePhoto[]
   location: LocationPoint
+}
+
+export type RegisterUserDto = {
+  displayName: string
+  age: number
+  bio?: string
+  interests: string[]
+  lookingFor: string[]
+  languages: string[]
 }
 
 export interface LocationPoint {

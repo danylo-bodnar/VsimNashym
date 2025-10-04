@@ -66,7 +66,7 @@ export default function UserMap() {
             <Marker
               key={u.telegramId}
               position={[u.location.latitude, u.location.longitude]}
-              icon={avatarIcon(u.profilePhotos[0])}
+              icon={avatarIcon(u.profilePhotos[0].url)}
             >
               <Popup>
                 <div className="flex flex-col gap-2">

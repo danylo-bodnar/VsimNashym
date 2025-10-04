@@ -15,10 +15,12 @@ function App() {
   const [isLoading, setIsLoading] = useState(true)
   const [jwt, setJwt] = useState<string | null>(null)
 
+  // Expand Telegram Web App
   useEffect(() => {
     tg?.expand()
   }, [tg])
 
+  // Telegram login / auth
   useEffect(() => {
     const initAuth = async () => {
       if (!tg || !user) return
@@ -33,35 +35,41 @@ function App() {
 
     initAuth()
   }, [tg, user])
+
   // Fetch existing user data
-  // useEffect(() => {
-  //   const fetchUserData = async () => {
-  //     if (!user?.id) {
-  //       setIsLoading(false)
-  //       return
-  //     }
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) {
+        setIsLoading(false)
+        return
+      }
 
-  //     try {
-  //       const response = await apiClient.get(`/api/users/telegram/${user.id}`)
-  //       setUserData(response.data)
-  //     } catch (error: any) {
-  //       if (error.response?.status === 404) {
-  //         setUserData(null)
-  //       } else {
-  //         console.error('Error fetching user data:', error)
-  //       }
-  //     } finally {
-  //       setIsLoading(false)
-  //     }
-  //   }
+      try {
+        const response = await apiClient.get(`/api/users/telegram/${user.id}`)
+        setUserData(response.data)
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          setUserData(null)
+        } else {
+          console.error('Error fetching user data:', error)
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-  //   fetchUserData()
-  // }, [user?.id])
+    fetchUserData()
+  }, [user?.id])
 
-  // Show loading state
-  // if (isLoading) return <Loader />
+  // Redirect unregistered users to ProfileSettings
+  useEffect(() => {
+    if (!isLoading) {
+      setCurrentTab(userData ? 'map' : 'profile')
+    }
+  }, [isLoading, userData])
 
-  // Show error if no Telegram user
+  if (isLoading) return <Loader />
+
   if (!user?.id) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-white p-6">
@@ -82,6 +90,7 @@ function App() {
           <ProfileSettings telegramId={user.id} existingUser={userData} />
         )}
       </div>
+
       {/* Bottom navigation */}
       <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
     </div>

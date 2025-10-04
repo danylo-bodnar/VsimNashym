@@ -1,6 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
 import MapIcon from '@mui/icons-material/Map'
-import IconButton from '@mui/material/IconButton'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 
 interface BottomNavProps {

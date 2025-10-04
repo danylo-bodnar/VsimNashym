@@ -1,20 +1,17 @@
 import { useForm } from 'react-hook-form'
 import { useState, useEffect } from 'react'
-import apiClient from '@/utils/api-client'
-import type { User, LocationPoint } from '@/types/user'
-
-type RegisterUserForm = {
-  displayName: string
-  age: number
-  bio?: string
-  interests: string[]
-  lookingFor: string[]
-  language: string[]
-}
+import type { User, LocationPoint, RegisterUserDto } from '@/types/user'
+import { submitUser } from '@/features/users/api'
 
 type ProfileSettingsProps = {
   existingUser: User | null
   telegramId: number
+}
+
+type PhotoMeta = {
+  url: string | null
+  file?: File | null
+  messageId?: string | null
 }
 
 const INTERESTS = [
@@ -40,7 +37,7 @@ const LANGUAGES = [
   'English',
   'Русский',
   'Polsk',
-  'Deutch',
+  'Deutsch',
 ]
 
 export default function ProfileSettings({
@@ -52,7 +49,7 @@ export default function ProfileSettings({
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<RegisterUserForm>({
+  } = useForm<RegisterUserDto>({
     defaultValues: existingUser
       ? {
           displayName: existingUser.displayName,
@@ -60,29 +57,25 @@ export default function ProfileSettings({
           bio: existingUser.bio || '',
           interests: existingUser.interests,
           lookingFor: existingUser.lookingFor,
-          language: existingUser.languages,
+          languages: existingUser.languages,
         }
       : {
           interests: [],
           lookingFor: [],
-          language: [],
+          languages: [],
         },
   })
 
-  const [location, setLocation] = useState<LocationPoint | null>(
-    existingUser
-      ? {
-          latitude: existingUser.location.latitude,
-          longitude: existingUser.location.longitude,
-        }
-      : null
+  const [photos, setPhotos] = useState<PhotoMeta[]>(
+    existingUser?.profilePhotos.map((p) => ({
+      url: p.url,
+      messageId: p.messageId,
+    })) || [
+      { url: '', file: undefined },
+      { url: '', file: undefined },
+      { url: '', file: undefined },
+    ]
   )
-
-  const [photos, setPhotos] = useState<(string | null)[]>([
-    existingUser?.profilePhotos?.[0] || null,
-    existingUser?.profilePhotos?.[1] || null,
-    existingUser?.profilePhotos?.[2] || null,
-  ])
 
   const [photoFiles, setPhotoFiles] = useState<(File | null)[]>([
     null,
@@ -102,19 +95,22 @@ export default function ProfileSettings({
 
   const isEditMode = !!existingUser
 
-  const handleGetLocation = () => {
-    return new Promise<LocationPoint>((resolve, reject) => {
+  const handleGetLocation = (): Promise<LocationPoint> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        return reject(new Error('Geolocation is not supported by your browser'))
+      }
+
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const newLocation = {
+          const location: LocationPoint = {
             latitude: pos.coords.latitude,
             longitude: pos.coords.longitude,
           }
-          setLocation(newLocation)
-          resolve(newLocation)
+          resolve(location)
         },
         (err) => {
-          alert('Не вдалося отримати локацію: ' + err.message)
+          console.error('Geo error', err)
           reject(err)
         }
       )
@@ -129,7 +125,7 @@ export default function ProfileSettings({
         bio: existingUser.bio || '',
         interests: existingUser.interests,
         lookingFor: existingUser.lookingFor,
-        language: existingUser.languages,
+        languages: existingUser.languages,
       })
       setPhotos([
         existingUser?.profilePhotos?.[0] || null,
@@ -143,25 +139,31 @@ export default function ProfileSettings({
   }, [existingUser, reset])
 
   const handlePhotoChange = (index: number, file: File | null) => {
+    const newPhotos = [...photos]
     if (file) {
-      const newPhotos = [...photos]
-      newPhotos[index] = URL.createObjectURL(file)
-      setPhotos(newPhotos)
-
-      const newPhotoFiles = [...photoFiles]
-      newPhotoFiles[index] = file
-      setPhotoFiles(newPhotoFiles)
+      newPhotos[index] = {
+        url: URL.createObjectURL(file),
+        file,
+        messageId: newPhotos[index]?.messageId,
+      }
+    } else {
+      newPhotos[index] = { url: '', file: undefined, messageId: undefined }
     }
+    setPhotos(newPhotos)
   }
 
   const removePhoto = (index: number) => {
     const newPhotos = [...photos]
-    newPhotos[index] = null
+    if (newPhotos[index]?.messageId) {
+      newPhotos[index] = {
+        url: '',
+        file: null,
+        messageId: newPhotos[index].messageId,
+      }
+    } else {
+      newPhotos[index] = { url: '', file: null, messageId: undefined }
+    }
     setPhotos(newPhotos)
-
-    const newPhotoFiles = [...photoFiles]
-    newPhotoFiles[index] = null
-    setPhotoFiles(newPhotoFiles)
   }
 
   const toggleSelection = (
@@ -176,17 +178,23 @@ export default function ProfileSettings({
     }
   }
 
-  const onSubmit = async (data: RegisterUserForm) => {
-    if (!isEditMode && !photos.some((p) => p !== null)) {
+  const onSubmit = async (data: RegisterUserDto) => {
+    let userLocation: LocationPoint
+
+    try {
+      userLocation = await handleGetLocation()
+    } catch (err) {
+      console.error('Failed to get location, using default', err)
+      return
+    }
+
+    if (!isEditMode && !photos.some((p) => p.url)) {
       alert('Будь ласка, додайте хоча б одне фото')
       return
     }
 
     setIsSubmitting(true)
-
     try {
-      const currentLocation = location || (await handleGetLocation())
-
       const formData = new FormData()
       formData.append('telegramId', telegramId.toString())
       formData.append('displayName', data.displayName)
@@ -197,31 +205,30 @@ export default function ProfileSettings({
         formData.append('interests', interest)
       )
       selectedLookingFor.forEach((item) => formData.append('lookingFor', item))
-      selectedLanguages.forEach((lang) => formData.append('language', lang))
+      selectedLanguages.forEach((lang) => formData.append('languages', lang))
 
-      photoFiles.forEach((file, index) => {
-        if (file) {
-          formData.append(`photo${index}`, file)
-        }
+      photos.forEach((photo, index) => {
+        if (photo.file) formData.append(`profilePhotos`, photo.file)
+        if (!photo.file && photo.messageId)
+          formData.append('existingPhotoMessageIds', photo.messageId)
       })
 
-      if (currentLocation) {
-        formData.append('lat', currentLocation.latitude.toString())
-        formData.append('lng', currentLocation.longitude.toString())
-      }
+      formData.append('latitude', userLocation.latitude.toString())
+      formData.append('longitude', userLocation.longitude.toString())
+
+      await submitUser({
+        formData,
+        isEditMode,
+        telegramId: existingUser?.telegramId,
+      })
 
       if (isEditMode) {
-        await apiClient.put(`/api/users/${existingUser.telegramId}`, formData)
-
         alert('Профіль успішно оновлено!')
       } else {
-        await apiClient.post('/api/users', formData)
-
         alert('Профіль успішно створено!')
       }
-    } catch (error) {
-      console.error('Помилка збереження профілю:', error)
-
+    } catch (err) {
+      console.error('Помилка збереження профілю:', err)
       alert('Помилка збереження профілю')
     } finally {
       setIsSubmitting(false)
@@ -268,7 +275,7 @@ export default function ProfileSettings({
                     {photos[index] ? (
                       <div className="relative h-full w-full group">
                         <img
-                          src={photos[index]!}
+                          src={photos[index].url!}
                           alt={`Фото ${index + 1}`}
                           className="h-full w-full object-cover border-2 border-black"
                         />
