@@ -9,10 +9,12 @@ namespace api.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IFileStorageService _fileStorageService;
 
-        public UserService(IUserRepository userRepositoy)
+        public UserService(IUserRepository userRepositoy, IFileStorageService fileStorageService)
         {
             _userRepository = userRepositoy;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<User?> RegisterUserAsync(RegisterUserDto dto)
@@ -20,9 +22,20 @@ namespace api.Services
             var exists = await _userRepository.Exists(dto.TelegramId);
             if (exists) return null;
 
-            var userModel = dto.ToEntity();
+            var uploadedPhotos = new List<(string url, string messageId)>();
+            if (dto.ProfilePhotos != null && dto.ProfilePhotos.Any())
+            {
+                foreach (var file in dto.ProfilePhotos)
+                {
+                    var uploaded = await _fileStorageService.UploadProfilePhotoAsync(file);
+                    uploadedPhotos.Add(uploaded);
+                }
+            }
+
+            var userModel = dto.ToEntity(uploadedPhotos);
 
             var user = await _userRepository.CreateAsync(userModel);
+
             return user;
         }
 

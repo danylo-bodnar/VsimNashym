@@ -82,9 +82,6 @@ namespace api.Repositories
                 {
                     TelegramId = reader.GetInt64(reader.GetOrdinal("telegramid")),
                     DisplayName = reader.GetString(reader.GetOrdinal("displayname")),
-                    ProfilePhotoFileId = reader.IsDBNull(reader.GetOrdinal("profilephotofileid"))
-                        ? null
-                        : reader.GetString(reader.GetOrdinal("profilephotofileid")),
                     Location = new LocationPoint
                     {
                         Latitude = reader.GetDouble(reader.GetOrdinal("latitude")),

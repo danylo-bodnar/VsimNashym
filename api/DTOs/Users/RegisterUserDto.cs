@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 using NetTopologySuite.Geometries;
 
 namespace api.DTOs
@@ -12,8 +7,12 @@ namespace api.DTOs
         public long TelegramId { get; set; }
         public string DisplayName { get; set; } = string.Empty;
         public int Age { get; set; }
-        public string ProfilePhotoFileId { get; set; } = string.Empty;
-        public Point Location { get; set; } = null!;
+        public IFormFile[]? ProfilePhotos { get; set; }
         public string? Bio { get; set; }
+        public List<string> Interests { get; set; } = new();
+        public List<string> LookingFor { get; set; } = new();
+        public List<string> Languages { get; set; } = new();
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 }
