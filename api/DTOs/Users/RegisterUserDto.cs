@@ -12,6 +12,7 @@ namespace api.DTOs
         public List<string> Interests { get; set; } = new();
         public List<string> LookingFor { get; set; } = new();
         public List<string> Languages { get; set; } = new();
-        public LocationPoint Location { get; set; } = null!;
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 }

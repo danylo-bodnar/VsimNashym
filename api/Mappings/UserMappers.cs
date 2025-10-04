@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using api.DTOs;
 using api.Models;
 using NetTopologySuite.Geometries;
@@ -23,7 +19,7 @@ namespace api.Mappings
                     Url = p.url,
                     MessageId = p.messageId
                 }).ToList() ?? new List<ProfilePhoto>(),
-                Location = new Point(dto.Location.Longitude, dto.Location.Latitude) { SRID = 4326 },
+                Location = new Point(dto.Longitude, dto.Latitude) { SRID = 4326 },
                 Bio = dto.Bio,
                 Interests = dto.Interests ?? new List<string>(),
                 LookingFor = dto.LookingFor ?? new List<string>(),
