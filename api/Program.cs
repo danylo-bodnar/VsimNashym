@@ -92,6 +92,9 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.NumberHandling =
             System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals;
+        options.JsonSerializerOptions.ReferenceHandler =
+                    System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
     });
 
 // Add JwtOptions

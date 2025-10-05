@@ -1,4 +1,5 @@
 using api.DTOs;
+using api.DTOs.Users;
 using api.Interfaces;
 using api.Mappings;
 using api.Models;
@@ -48,6 +49,18 @@ namespace api.Services
         public async Task<bool> IsUserRegisteredAsync(long telegramId)
         {
             return await _userRepository.Exists(telegramId);
+        }
+
+        public async Task<UserDto?> GetUserByTelegramIdAsync(long telegramId)
+        {
+            var user = await _userRepository.GetByTelegramIdAsync(telegramId);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            return UserMappers.ToUserDto(user);
         }
     }
 }

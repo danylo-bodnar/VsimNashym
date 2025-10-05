@@ -1,4 +1,5 @@
 using api.DTOs;
+using api.DTOs.Users;
 using api.Models;
 using NetTopologySuite.Geometries;
 
@@ -27,6 +28,32 @@ namespace api.Mappings
                 CreatedAt = DateTime.UtcNow
             };
         }
-
+        public static UserDto ToUserDto(User user)
+        {
+            return new UserDto
+            {
+                TelegramId = user.TelegramId,
+                DisplayName = user.DisplayName,
+                Age = user.Age,
+                Bio = user.Bio,
+                Interests = user.Interests,
+                LookingFor = user.LookingFor,
+                Languages = user.Languages,
+                CreatedAt = user.CreatedAt,
+                ProfilePhotos = user.ProfilePhotos
+                    .Select(p => new ProfilePhotoDto
+                    {
+                        Id = p.Id,
+                        Url = p.Url,
+                        MessageId = p.MessageId
+                    })
+                    .ToList(),
+                Location = new LocationPointDto
+                {
+                    Latitude = user.Location.Y,
+                    Longitude = user.Location.X
+                }
+            };
+        }
     }
 }

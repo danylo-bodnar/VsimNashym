@@ -46,6 +46,18 @@ namespace api.Controllers
         }
 
         [Authorize]
+        [HttpGet("{telegramId:long}")]
+        public async Task<IActionResult> GetUserByTelegramId(long telegramId)
+        {
+            var user = await _userService.GetUserByTelegramIdAsync(telegramId);
+
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(user);
+        }
+
+        [Authorize]
         [HttpGet("nearby")]
         public async Task<IActionResult> GetNearbyUsers(double lat, double lng, double radiusMeters)
         {

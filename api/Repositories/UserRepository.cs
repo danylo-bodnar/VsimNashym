@@ -30,7 +30,6 @@ namespace api.Repositories
             SELECT 
                 telegramid,
                 displayname,
-                profilephotofileid,
                 ST_Y(location) AS latitude,
                 ST_X(location) AS longitude
             FROM users

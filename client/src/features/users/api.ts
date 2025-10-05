@@ -26,6 +26,11 @@ export async function submitUser({
   }
 }
 
+export async function getUserById(telegramId: number): Promise<User> {
+  const response = await apiClient.get<User>(`/user/${telegramId}`)
+  return response.data
+}
+
 export async function getNearbyUsers(
   lat: number,
   lng: number,

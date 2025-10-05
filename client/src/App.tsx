@@ -3,10 +3,10 @@ import { useTelegram } from './hooks/useTelegram'
 import UserMap from './components/UserMap'
 import ProfileSettings from './components/ProfileSettings'
 import BottomNav from './components/BottomNav'
-import apiClient from './utils/api-client'
 import type { User } from './types/user'
 import Loader from './components/Loader'
 import { telegramLogin } from './features/auth/api'
+import { getUserById } from './features/users/api'
 
 function App() {
   const { tg, user } = useTelegram()
@@ -45,8 +45,10 @@ function App() {
       }
 
       try {
-        const response = await apiClient.get(`/api/users/telegram/${user.id}`)
-        setUserData(response.data)
+        const userData = await getUserById(user.id)
+
+        debugger
+        setUserData(userData)
       } catch (error: any) {
         if (error.response?.status === 404) {
           setUserData(null)
