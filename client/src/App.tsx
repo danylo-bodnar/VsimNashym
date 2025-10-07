@@ -15,6 +15,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(true)
   const [jwt, setJwt] = useState<string | null>(null)
 
+  const isAuthenticated = !!userData && !!jwt
+
   // Expand Telegram Web App
   useEffect(() => {
     tg?.expand()
@@ -86,15 +88,20 @@ function App() {
   return (
     <div className="h-screen w-screen flex flex-col">
       {/* Content section */}
+
       <div className="flex-1 overflow-hidden">
-        {currentTab === 'map' && <UserMap />}
+        {currentTab === 'map' && isAuthenticated && <UserMap />}
         {currentTab === 'profile' && (
           <ProfileSettings telegramId={user.id} existingUser={userData} />
         )}
       </div>
 
       {/* Bottom navigation */}
-      <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      <BottomNav
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        disableMap={!isAuthenticated}
+      />
     </div>
   )
 }
