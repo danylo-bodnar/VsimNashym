@@ -94,7 +94,9 @@ namespace api.Repositories
 
         public async Task<User?> GetByTelegramIdAsync(long telegramId)
         {
-            return await _db.Users.FirstOrDefaultAsync(u => u.TelegramId == telegramId);
+            return await _db.Users
+                .Include(u => u.ProfilePhotos)
+                .FirstOrDefaultAsync(u => u.TelegramId == telegramId);
         }
 
         public async Task<bool> Exists(long telegramId)
