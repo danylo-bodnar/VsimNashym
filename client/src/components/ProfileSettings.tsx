@@ -2,17 +2,7 @@ import { useForm } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import type { User, LocationPoint, RegisterUserDto } from '@/types/user'
 import { submitUser } from '@/features/users/api'
-
-type ProfileSettingsProps = {
-  existingUser: User | null
-  telegramId: number
-}
-
-type PhotoMeta = {
-  url: string | null
-  file?: File | null
-  messageId?: string | null
-}
+import { telegramLogin } from '@/features/auth/api'
 
 const INTERESTS = [
   'Кава',
@@ -40,9 +30,22 @@ const LANGUAGES = [
   'Deutsch',
 ]
 
+type PhotoMeta = {
+  url: string | null
+  file?: File | null
+  messageId?: string | null
+}
+
+type ProfileSettingsProps = {
+  existingUser: User | null
+  telegramId: number
+  onRegister?: (userData: User, jwt: string) => void
+}
+
 export default function ProfileSettings({
   existingUser,
   telegramId,
+  onRegister,
 }: ProfileSettingsProps) {
   const {
     register,
@@ -216,7 +219,7 @@ export default function ProfileSettings({
       formData.append('latitude', userLocation.latitude.toString())
       formData.append('longitude', userLocation.longitude.toString())
 
-      await submitUser({
+      const newUser = await submitUser({
         formData,
         isEditMode,
         telegramId: existingUser?.telegramId,
@@ -226,6 +229,9 @@ export default function ProfileSettings({
         alert('Профіль успішно оновлено!')
       } else {
         alert('Профіль успішно створено!')
+
+        const token = await telegramLogin(telegramId)
+        onRegister?.(newUser, token)
       }
     } catch (err) {
       console.error('Помилка збереження профілю:', err)

@@ -48,8 +48,7 @@ function App() {
 
       try {
         const userData = await getUserById(user.id)
-
-        debugger
+        console.log(userData.profilePhotos[0].url)
         setUserData(userData)
       } catch (error: any) {
         if (error.response?.status === 404) {
@@ -92,7 +91,15 @@ function App() {
       <div className="flex-1 overflow-hidden">
         {currentTab === 'map' && isAuthenticated && <UserMap />}
         {currentTab === 'profile' && (
-          <ProfileSettings telegramId={user.id} existingUser={userData} />
+          <ProfileSettings
+            telegramId={user.id}
+            existingUser={userData}
+            onRegister={(newUser, token) => {
+              setUserData(newUser)
+              setJwt(token)
+              setCurrentTab('map') // automatically switch to map after registration
+            }}
+          />
         )}
       </div>
 
