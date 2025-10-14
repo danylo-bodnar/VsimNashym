@@ -2,7 +2,7 @@
 import axios from 'axios'
 
 const apiClient = axios.create({
-  baseURL: 'https://3cb7dd99094e.ngrok-free.app/',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: false,
   headers: {
     'ngrok-skip-browser-warning': 'true',

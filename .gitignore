@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 .env
 
 api/Migrations/*.Designer.cs
+
+
+client/.env*
