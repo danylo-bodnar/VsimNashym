@@ -104,5 +104,10 @@ namespace api.Repositories
             return await _db.Users.AnyAsync(u => u.TelegramId == telegramId);
         }
 
+        public async Task<User> UpdateAsync(User user)
+        {
+            await _db.SaveChangesAsync();
+            return user;
+        }
     }
 }

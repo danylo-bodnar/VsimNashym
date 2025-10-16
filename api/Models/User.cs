@@ -1,4 +1,5 @@
 
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using NetTopologySuite.Geometries;
 
@@ -7,14 +8,10 @@ namespace api.Models
 {
     public class ProfilePhoto
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Url { get; set; } = string.Empty;
+        [Key]
         public string MessageId { get; set; } = string.Empty;
-
+        public string Url { get; set; } = string.Empty;
         public Guid UserId { get; set; }
-
-        [JsonIgnore]
-        public User User { get; set; } = null!;
     }
 
 

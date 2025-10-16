@@ -26,14 +26,6 @@ namespace api.Data
                 entity.Property(u => u.Location).HasColumnType("geometry(Point, 4326)");
             });
 
-            modelBuilder.Entity<ProfilePhoto>(entity =>
-            {
-                entity.HasKey(p => p.Id);
-                entity.HasOne(p => p.User)
-                      .WithMany(u => u.ProfilePhotos)
-                      .HasForeignKey(p => p.UserId);
-            });
-
             modelBuilder.Entity<Connection>(entity =>
             {
                 entity.HasKey(h => h.Id);

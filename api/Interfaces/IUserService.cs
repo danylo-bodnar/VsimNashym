@@ -6,7 +6,8 @@ namespace api.Interfaces
 {
     public interface IUserService
     {
-        Task<User?> RegisterUserAsync(RegisterUserDto dto);
+        Task<User> RegisterUserAsync(RegisterUserDto dto);
+        Task<User> UpdateUserAsync(long telegramId, UpdateUserDto dto);
         Task<UserDto?> GetUserByTelegramIdAsync(long telegramId);
         Task<IEnumerable<NearbyUserDto>> FindNearbyUsersAsync(Guid currentUserId, double lat, double lng, double radiusMeters);
         Task<bool> IsUserRegisteredAsync(long telegramId);

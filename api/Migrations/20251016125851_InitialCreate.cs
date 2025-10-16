@@ -57,14 +57,13 @@ namespace api.Migrations
                 name: "profilephoto",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    url = table.Column<string>(type: "text", nullable: false),
                     messageid = table.Column<string>(type: "text", nullable: false),
+                    url = table.Column<string>(type: "text", nullable: false),
                     userid = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_profilephoto", x => x.id);
+                    table.PrimaryKey("PK_profilephoto", x => x.messageid);
                     table.ForeignKey(
                         name: "FK_profilephoto_users_userid",
                         column: x => x.userid,

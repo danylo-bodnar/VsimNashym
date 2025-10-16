@@ -12,18 +12,22 @@ namespace api.Controllers
     public class UserController : Controller
     {
         private readonly IUserService _userService;
-        private readonly IValidator<RegisterUserDto> _validator;
+        private readonly IValidator<RegisterUserDto> _registerValidator;
+        private readonly IValidator<UpdateUserDto> _updateValidator;
 
-        public UserController(IUserService userService, IValidator<RegisterUserDto> validator)
+        public UserController(
+       IUserService userService,
+       IValidator<RegisterUserDto> registerValidator,
+       IValidator<UpdateUserDto> updateValidator)
         {
             _userService = userService;
-            _validator = validator;
+            _registerValidator = registerValidator;
+            _updateValidator = updateValidator;
         }
-
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromForm] RegisterUserDto dto)
         {
-            await _validator.ValidateAsync(dto);
+            await _registerValidator.ValidateAsync(dto);
 
             var user = await _userService.RegisterUserAsync(dto);
 
@@ -42,6 +46,31 @@ namespace api.Controllers
                 languages = user.Languages,
                 location = new { latitude = user.Location.Y, longitude = user.Location.X },
                 createdAt = user.CreatedAt
+            });
+        }
+
+        [Authorize]
+        [HttpPut("{telegramId:long}")]
+        public async Task<IActionResult> Update(long telegramId, [FromForm] UpdateUserDto dto)
+        {
+            await _updateValidator.ValidateAsync(dto);
+
+            var updatedUser = await _userService.UpdateUserAsync(telegramId, dto);
+
+            if (updatedUser == null)
+                return NotFound(new { message = "User not found." });
+
+            return Ok(new
+            {
+                telegramId = updatedUser.TelegramId,
+                displayName = updatedUser.DisplayName,
+                age = updatedUser.Age,
+                profilePhotos = updatedUser.ProfilePhotos,
+                bio = updatedUser.Bio,
+                interests = updatedUser.Interests,
+                lookingFor = updatedUser.LookingFor,
+                languages = updatedUser.Languages,
+                location = new { latitude = updatedUser.Location.Y, longitude = updatedUser.Location.X },
             });
         }
 

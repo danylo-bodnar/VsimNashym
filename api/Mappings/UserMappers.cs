@@ -43,7 +43,6 @@ namespace api.Mappings
                 ProfilePhotos = user.ProfilePhotos
                     .Select(p => new ProfilePhotoDto
                     {
-                        Id = p.Id,
                         Url = p.Url,
                         MessageId = p.MessageId
                     })
@@ -55,5 +54,46 @@ namespace api.Mappings
                 }
             };
         }
+
+        public static void UpdateEntity(this UpdateUserDto dto, User user, List<(string url, string messageId)>? uploadedPhotos = null)
+        {
+            if (dto.DisplayName != null) user.DisplayName = dto.DisplayName;
+            if (dto.Age.HasValue) user.Age = dto.Age.Value;
+            if (dto.Bio != null) user.Bio = dto.Bio;
+            if (dto.Interests != null) user.Interests = dto.Interests;
+            if (dto.LookingFor != null) user.LookingFor = dto.LookingFor;
+            if (dto.Languages != null) user.Languages = dto.Languages;
+
+            if (dto.Latitude.HasValue && dto.Longitude.HasValue)
+            {
+                user.Location = new Point(dto.Longitude.Value, dto.Latitude.Value) { SRID = 4326 };
+            }
+
+            // Filter existing photos
+            if (dto.ExistingPhotoMessageIds != null && dto.ExistingPhotoMessageIds.Any())
+            {
+                user.ProfilePhotos = user.ProfilePhotos
+                    .Where(p => dto.ExistingPhotoMessageIds.Contains(p.MessageId))
+                    .ToList();
+            }
+
+            // Add new uploaded photos
+            if (uploadedPhotos != null && uploadedPhotos.Any())
+            {
+                foreach (var p in uploadedPhotos)
+                {
+                    // Make sure no duplicate
+                    if (!user.ProfilePhotos.Any(x => x.MessageId == p.messageId))
+                    {
+                        user.ProfilePhotos.Add(new ProfilePhoto
+                        {
+                            Url = p.url,
+                            MessageId = p.messageId
+                        });
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -74,17 +74,12 @@ export default function ProfileSettings({
       url: p.url,
       messageId: p.messageId,
     })) || [
-      { url: '', file: undefined },
-      { url: '', file: undefined },
-      { url: '', file: undefined },
+      { url: null, file: null },
+      { url: null, file: null },
+      { url: null, file: null },
     ]
   )
 
-  const [photoFiles, setPhotoFiles] = useState<(File | null)[]>([
-    null,
-    null,
-    null,
-  ])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedInterests, setSelectedInterests] = useState<string[]>(
     existingUser?.interests || []
@@ -114,7 +109,12 @@ export default function ProfileSettings({
         },
         (err) => {
           console.error('Geo error', err)
-          reject(err)
+
+          const location: LocationPoint = {
+            latitude: 50,
+            longitude: 50,
+          }
+          resolve(location)
         }
       )
     })
@@ -130,11 +130,29 @@ export default function ProfileSettings({
         lookingFor: existingUser.lookingFor,
         languages: existingUser.languages,
       })
-      setPhotos([
-        existingUser?.profilePhotos?.[0] || null,
-        existingUser?.profilePhotos?.[1] || null,
-        existingUser?.profilePhotos?.[2] || null,
-      ])
+
+      const existingPhotos = [
+        existingUser?.profilePhotos?.[0]
+          ? {
+              url: existingUser.profilePhotos[0].url,
+              messageId: existingUser.profilePhotos[0].messageId,
+            }
+          : { url: null, file: null },
+        existingUser?.profilePhotos?.[1]
+          ? {
+              url: existingUser.profilePhotos[1].url,
+              messageId: existingUser.profilePhotos[1].messageId,
+            }
+          : { url: null, file: null },
+        existingUser?.profilePhotos?.[2]
+          ? {
+              url: existingUser.profilePhotos[2].url,
+              messageId: existingUser.profilePhotos[2].messageId,
+            }
+          : { url: null, file: null },
+      ]
+
+      setPhotos(existingPhotos)
       setSelectedInterests(existingUser.interests || [])
       setSelectedLookingFor(existingUser.lookingFor || [])
       setSelectedLanguages(existingUser.languages || [])
@@ -147,25 +165,18 @@ export default function ProfileSettings({
       newPhotos[index] = {
         url: URL.createObjectURL(file),
         file,
-        messageId: newPhotos[index]?.messageId,
+        messageId: null,
       }
     } else {
-      newPhotos[index] = { url: '', file: undefined, messageId: undefined }
+      newPhotos[index] = { url: null, file: null, messageId: null }
     }
     setPhotos(newPhotos)
   }
 
   const removePhoto = (index: number) => {
     const newPhotos = [...photos]
-    if (newPhotos[index]?.messageId) {
-      newPhotos[index] = {
-        url: '',
-        file: null,
-        messageId: newPhotos[index].messageId,
-      }
-    } else {
-      newPhotos[index] = { url: '', file: null, messageId: undefined }
-    }
+    // Simply clear the photo slot - no messageId needed
+    newPhotos[index] = { url: null, file: null, messageId: null }
     setPhotos(newPhotos)
   }
 
@@ -183,6 +194,7 @@ export default function ProfileSettings({
 
   const onSubmit = async (data: RegisterUserDto) => {
     let userLocation: LocationPoint
+    console.log('🖼️ Photos array before sending:', photos)
 
     try {
       userLocation = await handleGetLocation()
@@ -210,10 +222,18 @@ export default function ProfileSettings({
       selectedLookingFor.forEach((item) => formData.append('lookingFor', item))
       selectedLanguages.forEach((lang) => formData.append('languages', lang))
 
-      photos.forEach((photo, index) => {
-        if (photo.file) formData.append(`profilePhotos`, photo.file)
-        if (!photo.file && photo.messageId)
+      // Add new photos (files)
+      photos.forEach((photo) => {
+        if (photo?.file) {
+          formData.append('profilePhotos', photo.file)
+        }
+      })
+
+      // Add existing photo messageIds that should be kept
+      photos.forEach((photo) => {
+        if (photo?.messageId) {
           formData.append('existingPhotoMessageIds', photo.messageId)
+        }
       })
 
       formData.append('latitude', userLocation.latitude.toString())
@@ -278,8 +298,8 @@ export default function ProfileSettings({
                     htmlFor={`photo-${index}`}
                     className="block h-full w-full cursor-pointer"
                   >
-                    {photos[index] ? (
-                      <div className="relative h-full w-full group">
+                    {photos[index]?.url ? (
+                      <div className="relative h-full w-full">
                         <img
                           src={photos[index].url!}
                           alt={`Фото ${index + 1}`}
@@ -291,7 +311,7 @@ export default function ProfileSettings({
                             e.preventDefault()
                             removePhoto(index)
                           }}
-                          className="absolute top-1 right-1 bg-black text-white w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-lg leading-none"
+                          className="absolute top-0 right-0 text-white w-7 h-7 flex items-center justify-center text-xl leading-none shadow-lg hover:bg-gray-800 transition-colors"
                         >
                           ×
                         </button>
@@ -317,7 +337,7 @@ export default function ProfileSettings({
                 </div>
               ))}
             </div>
-            {!isEditMode && !photos.some((p) => p !== null) && (
+            {!isEditMode && !photos.some((p) => p?.url) && (
               <p className="text-gray-500 text-xs mt-2">
                 Потрібне хоча б одне фото
               </p>

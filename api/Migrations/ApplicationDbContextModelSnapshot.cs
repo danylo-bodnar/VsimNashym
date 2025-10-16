@@ -62,13 +62,7 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Models.ProfilePhoto", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
                     b.Property<string>("MessageId")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("messageid");
 
@@ -81,7 +75,7 @@ namespace api.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("userid");
 
-                    b.HasKey("Id");
+                    b.HasKey("MessageId");
 
                     b.HasIndex("UserId");
 
@@ -148,13 +142,11 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Models.ProfilePhoto", b =>
                 {
-                    b.HasOne("api.Models.User", "User")
+                    b.HasOne("api.Models.User", null)
                         .WithMany("ProfilePhotos")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("api.Models.User", b =>
