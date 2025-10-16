@@ -19,10 +19,10 @@ namespace api.Services
             _fileStorageService = fileStorageService;
         }
 
-        public async Task<User?> RegisterUserAsync(RegisterUserDto dto)
+        public async Task<User> RegisterUserAsync(RegisterUserDto dto)
         {
             var exists = await _userRepository.Exists(dto.TelegramId);
-            if (exists) return null;
+            if (exists) throw new ApplicationException($"User with TelegramId {dto.TelegramId} already exists.");
 
             var uploadedPhotos = new List<(string url, string messageId)>();
             if (dto.ProfilePhotos != null && dto.ProfilePhotos.Any())
