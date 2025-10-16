@@ -39,7 +39,7 @@ type PhotoMeta = {
 type ProfileSettingsProps = {
   existingUser: User | null
   telegramId: number
-  onRegister?: (userData: User, jwt: string) => void
+  onRegister?: (userData: User, jwt: string | null) => void
 }
 
 export default function ProfileSettings({
@@ -52,6 +52,7 @@ export default function ProfileSettings({
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm<RegisterUserDto>({
     defaultValues: existingUser
       ? {
@@ -80,6 +81,17 @@ export default function ProfileSettings({
     ]
   )
 
+  const [initialPhotos, setInitialPhotos] = useState<PhotoMeta[]>(
+    existingUser?.profilePhotos.map((p) => ({
+      url: p.url,
+      messageId: p.messageId,
+    })) || [
+      { url: null, file: null },
+      { url: null, file: null },
+      { url: null, file: null },
+    ]
+  )
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedInterests, setSelectedInterests] = useState<string[]>(
     existingUser?.interests || []
@@ -92,6 +104,45 @@ export default function ProfileSettings({
   )
 
   const isEditMode = !!existingUser
+
+  // Watch form values for changes
+  const formValues = watch()
+
+  // Check if anything has changed
+  const hasChanges = () => {
+    if (!isEditMode) return true // Always allow submit for new users
+
+    // Check form fields
+    const formChanged =
+      formValues.displayName !== existingUser?.displayName ||
+      formValues.age !== existingUser?.age ||
+      formValues.bio !== (existingUser?.bio || '')
+
+    // Check arrays
+    const interestsChanged =
+      JSON.stringify(selectedInterests.sort()) !==
+      JSON.stringify((existingUser?.interests || []).sort())
+
+    const lookingForChanged =
+      JSON.stringify(selectedLookingFor.sort()) !==
+      JSON.stringify((existingUser?.lookingFor || []).sort())
+
+    const languagesChanged =
+      JSON.stringify(selectedLanguages.sort()) !==
+      JSON.stringify((existingUser?.languages || []).sort())
+
+    // Check photos
+    const photosChanged =
+      JSON.stringify(photos) !== JSON.stringify(initialPhotos)
+
+    return (
+      formChanged ||
+      interestsChanged ||
+      lookingForChanged ||
+      languagesChanged ||
+      photosChanged
+    )
+  }
 
   const handleGetLocation = (): Promise<LocationPoint> => {
     return new Promise((resolve, reject) => {
@@ -109,12 +160,7 @@ export default function ProfileSettings({
         },
         (err) => {
           console.error('Geo error', err)
-
-          const location: LocationPoint = {
-            latitude: 50,
-            longitude: 50,
-          }
-          resolve(location)
+          reject(err)
         }
       )
     })
@@ -153,6 +199,7 @@ export default function ProfileSettings({
       ]
 
       setPhotos(existingPhotos)
+      setInitialPhotos(existingPhotos)
       setSelectedInterests(existingUser.interests || [])
       setSelectedLookingFor(existingUser.lookingFor || [])
       setSelectedLanguages(existingUser.languages || [])
@@ -175,7 +222,6 @@ export default function ProfileSettings({
 
   const removePhoto = (index: number) => {
     const newPhotos = [...photos]
-    // Simply clear the photo slot - no messageId needed
     newPhotos[index] = { url: null, file: null, messageId: null }
     setPhotos(newPhotos)
   }
@@ -194,7 +240,6 @@ export default function ProfileSettings({
 
   const onSubmit = async (data: RegisterUserDto) => {
     let userLocation: LocationPoint
-    console.log('🖼️ Photos array before sending:', photos)
 
     try {
       userLocation = await handleGetLocation()
@@ -222,14 +267,12 @@ export default function ProfileSettings({
       selectedLookingFor.forEach((item) => formData.append('lookingFor', item))
       selectedLanguages.forEach((lang) => formData.append('languages', lang))
 
-      // Add new photos (files)
       photos.forEach((photo) => {
         if (photo?.file) {
           formData.append('profilePhotos', photo.file)
         }
       })
 
-      // Add existing photo messageIds that should be kept
       photos.forEach((photo) => {
         if (photo?.messageId) {
           formData.append('existingPhotoMessageIds', photo.messageId)
@@ -247,6 +290,9 @@ export default function ProfileSettings({
 
       if (isEditMode) {
         alert('Профіль успішно оновлено!')
+
+        setInitialPhotos([...photos])
+        onRegister?.(newUser, null)
       } else {
         alert('Профіль успішно створено!')
 
@@ -260,6 +306,8 @@ export default function ProfileSettings({
       setIsSubmitting(false)
     }
   }
+
+  const isButtonDisabled = isSubmitting || (isEditMode && !hasChanges())
 
   return (
     <div className="h-full w-full flex items-center justify-center bg-white p-6 overflow-y-auto">
@@ -311,7 +359,7 @@ export default function ProfileSettings({
                             e.preventDefault()
                             removePhoto(index)
                           }}
-                          className="absolute top-0 right-0 text-white w-7 h-7 flex items-center justify-center text-xl leading-none shadow-lg hover:bg-gray-800 transition-colors"
+                          className="absolute top-0 right-0 text-white w-7 h-7 flex items-center justify-center text-xl leading-none shadow-lg hover:bg-red-600 transition-colors"
                         >
                           ×
                         </button>
@@ -486,13 +534,15 @@ export default function ProfileSettings({
           <button
             type="submit"
             onClick={handleSubmit(onSubmit)}
-            disabled={isSubmitting}
+            disabled={isButtonDisabled}
             className="w-full py-4 bg-black text-white font-medium tracking-wide transition-all hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting
               ? 'Зберігаємо...'
               : isEditMode
-              ? 'Оновити профіль'
+              ? hasChanges()
+                ? 'Оновити профіль'
+                : 'Немає змін'
               : 'Створити профіль'}
           </button>
         </div>

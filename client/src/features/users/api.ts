@@ -13,9 +13,6 @@ export async function submitUser({
   telegramId,
 }: SubmitUserOptions): Promise<User> {
   if (isEditMode) {
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value)
-    }
     if (!telegramId)
       throw new Error('telegramId is required for updating a user')
     const response = await apiClient.put<User>(`/user/${telegramId}`, formData)

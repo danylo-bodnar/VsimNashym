@@ -67,7 +67,7 @@ function App() {
   // Redirect unregistered users to ProfileSettings
   useEffect(() => {
     if (!isLoading) {
-      setCurrentTab(userData ? 'map' : 'profile')
+      setCurrentTab(userData ? currentTab : 'profile')
     }
   }, [isLoading, userData])
 
@@ -94,10 +94,11 @@ function App() {
           <ProfileSettings
             telegramId={user.id}
             existingUser={userData}
-            onRegister={(newUser, token) => {
+            onRegister={(newUser, token?) => {
               setUserData(newUser)
-              setJwt(token)
-              setCurrentTab('map') // automatically switch to map after registration
+              if (token) {
+                setJwt(token)
+              }
             }}
           />
         )}
