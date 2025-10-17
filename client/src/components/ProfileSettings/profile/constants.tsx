@@ -1,4 +1,3 @@
-// components/profile/constants.ts
 export const INTERESTS = [
   'Кава',
   'Спорт',

@@ -1,4 +1,3 @@
-// components/ProfileSettings.tsx (Refactored)
 import { useState } from 'react'
 import type { User, LocationPoint, RegisterUserDto } from '@/types/user'
 import { submitUser } from '@/features/users/api'
