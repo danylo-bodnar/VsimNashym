@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import type { User, LocationPoint, RegisterUserDto } from '@/types/user'
 import { submitUser } from '@/features/users/api'
 import { telegramLogin } from '@/features/auth/api'
+import imageCompression from 'browser-image-compression'
 
 const INTERESTS = [
   'Кава',
@@ -267,10 +268,27 @@ export default function ProfileSettings({
       selectedLookingFor.forEach((item) => formData.append('lookingFor', item))
       selectedLanguages.forEach((lang) => formData.append('languages', lang))
 
-      photos.forEach((photo) => {
-        if (photo?.file) {
-          formData.append('profilePhotos', photo.file)
-        }
+      // compress all photos in parallel
+      const compressionOptions = {
+        maxSizeMB: 0.6, // about 600 KB
+        maxWidthOrHeight: 512, // good for profile photos
+        useWebWorker: true,
+      }
+
+      const compressedPhotos = await Promise.all(
+        photos.map(async (photo) => {
+          if (!photo?.file) return null
+          const compressedFile = await imageCompression(
+            photo.file,
+            compressionOptions
+          )
+          return compressedFile
+        })
+      )
+
+      // append compressed photos
+      compressedPhotos.forEach((file) => {
+        if (file) formData.append('profilePhotos', file)
       })
 
       photos.forEach((photo) => {
