@@ -19,6 +19,7 @@
     "@tailwindcss/vite": "^4.1.13",
     "@telegram-apps/bridge": "^2.11.0",
     "axios": "^1.12.2",
+    "browser-image-compression": "^2.0.2",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "react": "^19.1.1",
