@@ -1,8 +1,10 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet'
 import L from 'leaflet'
 import { useEffect, useState } from 'react'
 import { getNearbyUsers, sendHi } from '@/features/users/api'
 import type { User } from '@/types/user'
+
+const radius = 5000
 
 export default function UserMap() {
   const [position, setPosition] = useState<[number, number] | null>(null)
@@ -29,7 +31,7 @@ export default function UserMap() {
     const fetchUsers = async () => {
       try {
         // TODO: avoid hardcoding distance value
-        const nearby = await getNearbyUsers(position[0], position[1], 5000)
+        const nearby = await getNearbyUsers(position[0], position[1], radius)
         setUsers(nearby)
       } catch (err) {
         console.error('Failed to fetch nearby users', err)
@@ -60,6 +62,15 @@ export default function UserMap() {
           <Marker position={position} icon={avatarIcon(null)}>
             <Popup>You are here</Popup>
           </Marker>
+          <Circle
+            center={position}
+            radius={radius}
+            color="rgba(128,128,128,0.5)"
+            fillColor="gray"
+            fillOpacity={0.05}
+            weight={2}
+            interactive={false}
+          />
 
           {/* Nearby users */}
           {users.map((u) => (
