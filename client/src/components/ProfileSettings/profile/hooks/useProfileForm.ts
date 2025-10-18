@@ -4,158 +4,154 @@ import type { User, RegisterUserDto } from '@/types/user'
 import type { PhotoMeta } from '../constants'
 
 export function useProfileForm(existingUser: User | null) {
-  const form = useForm<RegisterUserDto>({
-    defaultValues: existingUser
-      ? {
-          displayName: existingUser.displayName,
-          age: existingUser.age,
-          bio: existingUser.bio || '',
-          interests: existingUser.interests,
-          lookingFor: existingUser.lookingFor,
-          languages: existingUser.languages,
-        }
-      : {
-          interests: [],
-          lookingFor: [],
-          languages: [],
-        },
-  })
-
-  const [photos, setPhotos] = useState<PhotoMeta[]>(
-    existingUser?.profilePhotos.map((p) => ({
-      url: p.url,
-      messageId: p.messageId,
-    })) || [
-      { url: null, file: null },
-      { url: null, file: null },
-      { url: null, file: null },
-    ]
-  )
-
-  const [initialPhotos, setInitialPhotos] = useState<PhotoMeta[]>(photos)
-
-  const [selectedInterests, setSelectedInterests] = useState<string[]>(
-    existingUser?.interests || []
-  )
-  const [selectedLookingFor, setSelectedLookingFor] = useState<string[]>(
-    existingUser?.lookingFor || []
-  )
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
-    existingUser?.languages || []
-  )
-
   const isEditMode = !!existingUser
 
-  // Sync state when existingUser changes
+  // Avatar state
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    existingUser?.avatar.url || null
+  )
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [initialAvatarUrl] = useState<string | null>(
+    existingUser?.avatar.url || null
+  )
+
+  // Photos state - Initialize with proper PhotoMeta structure
+  const [photos, setPhotos] = useState<PhotoMeta[]>([
+    { url: null, file: null, messageId: null },
+    { url: null, file: null, messageId: null },
+    { url: null, file: null, messageId: null },
+  ])
+  const [initialPhotos, setInitialPhotos] = useState<PhotoMeta[]>([
+    { url: null, file: null, messageId: null },
+    { url: null, file: null, messageId: null },
+    { url: null, file: null, messageId: null },
+  ])
+
+  // Multi-select states
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([])
+  const [selectedLookingFor, setSelectedLookingFor] = useState<string[]>([])
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
+
+  const form = useForm<RegisterUserDto>({
+    defaultValues: {
+      displayName: existingUser?.displayName || '',
+      age: existingUser?.age || 18,
+      bio: existingUser?.bio || '',
+    },
+  })
+
   useEffect(() => {
     if (existingUser) {
-      form.reset({
-        displayName: existingUser.displayName,
-        age: existingUser.age,
-        bio: existingUser.bio || '',
-        interests: existingUser.interests,
-        lookingFor: existingUser.lookingFor,
-        languages: existingUser.languages,
-      })
+      // Load existing photos
+      const loadedPhotos: PhotoMeta[] = existingUser.profilePhotos.map(
+        (photo) => ({
+          url: photo.url,
+          messageId: photo.messageId || null,
+          file: null,
+        })
+      )
 
-      const existingPhotos = [
-        existingUser?.profilePhotos?.[0]
-          ? {
-              url: existingUser.profilePhotos[0].url,
-              messageId: existingUser.profilePhotos[0].messageId,
-            }
-          : { url: null, file: null },
-        existingUser?.profilePhotos?.[1]
-          ? {
-              url: existingUser.profilePhotos[1].url,
-              messageId: existingUser.profilePhotos[1].messageId,
-            }
-          : { url: null, file: null },
-        existingUser?.profilePhotos?.[2]
-          ? {
-              url: existingUser.profilePhotos[2].url,
-              messageId: existingUser.profilePhotos[2].messageId,
-            }
-          : { url: null, file: null },
-      ]
+      // Pad with empty slots
+      while (loadedPhotos.length < 3) {
+        loadedPhotos.push({ url: null, file: null, messageId: null })
+      }
 
-      setPhotos(existingPhotos)
-      setInitialPhotos(existingPhotos)
+      setPhotos(loadedPhotos)
+      setInitialPhotos(JSON.parse(JSON.stringify(loadedPhotos)))
+
+      // Load selections
       setSelectedInterests(existingUser.interests || [])
       setSelectedLookingFor(existingUser.lookingFor || [])
       setSelectedLanguages(existingUser.languages || [])
     }
-  }, [existingUser, form])
+  }, [existingUser])
+
+  const handleAvatarChange = (file: File, croppedUrl: string) => {
+    setAvatarFile(file)
+    setAvatarUrl(croppedUrl)
+  }
+
+  const handleRemoveAvatar = () => {
+    setAvatarFile(null)
+    setAvatarUrl(null)
+  }
 
   const handlePhotoChange = (index: number, file: File | null) => {
-    const newPhotos = [...photos]
     if (file) {
-      newPhotos[index] = {
-        url: URL.createObjectURL(file),
-        file,
-        messageId: null,
-      }
-    } else {
-      newPhotos[index] = { url: null, file: null, messageId: null }
+      const url = URL.createObjectURL(file)
+      const newPhotos = [...photos]
+      newPhotos[index] = { file, url, messageId: null }
+      setPhotos(newPhotos)
     }
-    setPhotos(newPhotos)
   }
 
   const removePhoto = (index: number) => {
     const newPhotos = [...photos]
+    if (newPhotos[index]?.url && newPhotos[index]?.file) {
+      URL.revokeObjectURL(newPhotos[index].url!)
+    }
     newPhotos[index] = { url: null, file: null, messageId: null }
     setPhotos(newPhotos)
   }
 
   const toggleSelection = (
     item: string,
-    list: string[],
-    setter: (val: string[]) => void
+    selected: string[],
+    setSelected: (items: string[]) => void
   ) => {
-    if (list.includes(item)) {
-      setter(list.filter((i) => i !== item))
+    if (selected.includes(item)) {
+      setSelected(selected.filter((i) => i !== item))
     } else {
-      setter([...list, item])
+      setSelected([...selected, item])
     }
   }
 
-  const hasChanges = () => {
+  const hasChanges = (): boolean => {
     if (!isEditMode) return true
 
-    const formValues = form.watch()
-    const formChanged =
-      formValues.displayName !== existingUser?.displayName ||
-      formValues.age !== existingUser?.age ||
-      formValues.bio !== (existingUser?.bio || '')
+    const formValues = form.getValues()
 
-    const interestsChanged =
-      JSON.stringify(selectedInterests.sort()) !==
-      JSON.stringify((existingUser?.interests || []).sort())
+    // Check avatar changes
+    if (avatarFile !== null) return true
+    if (avatarUrl !== initialAvatarUrl) return true
 
-    const lookingForChanged =
-      JSON.stringify(selectedLookingFor.sort()) !==
-      JSON.stringify((existingUser?.lookingFor || []).sort())
+    // Check form field changes
+    if (formValues.displayName !== existingUser?.displayName) return true
+    if (formValues.age !== existingUser?.age) return true
+    if (formValues.bio !== existingUser?.bio) return true
 
-    const languagesChanged =
-      JSON.stringify(selectedLanguages.sort()) !==
-      JSON.stringify((existingUser?.languages || []).sort())
-
+    // Check photos changes
     const photosChanged =
       JSON.stringify(photos) !== JSON.stringify(initialPhotos)
+    if (photosChanged) return true
 
-    return (
-      formChanged ||
-      interestsChanged ||
-      lookingForChanged ||
-      languagesChanged ||
-      photosChanged
+    // Check multi-selects
+    if (
+      JSON.stringify(selectedInterests.sort()) !==
+      JSON.stringify((existingUser?.interests || []).sort())
     )
+      return true
+    if (
+      JSON.stringify(selectedLookingFor.sort()) !==
+      JSON.stringify((existingUser?.lookingFor || []).sort())
+    )
+      return true
+    if (
+      JSON.stringify(selectedLanguages.sort()) !==
+      JSON.stringify((existingUser?.languages || []).sort())
+    )
+      return true
+
+    return false
   }
 
   return {
     form,
+    avatarUrl,
+    avatarFile,
+    handleAvatarChange,
+    handleRemoveAvatar,
     photos,
-    setPhotos,
     setInitialPhotos,
     selectedInterests,
     setSelectedInterests,

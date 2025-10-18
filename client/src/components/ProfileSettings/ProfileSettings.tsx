@@ -4,6 +4,7 @@ import { submitUser } from '@/features/users/api'
 import { telegramLogin } from '@/features/auth/api'
 import imageCompression from 'browser-image-compression'
 import { useProfileForm } from './profile/hooks/useProfileForm'
+import AvatarUploader from './profile/AvatarUploader'
 import PhotoUploader from './profile/PhotoUploader'
 import MultiSelectButtons from './profile/MultiSelectButtons'
 import { INTERESTS, LOOKING_FOR, LANGUAGES } from './profile/constants'
@@ -37,6 +38,10 @@ export default function ProfileSettings({
   } = useProfileForm(existingUser)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    existingUser?.avatar.url || null
+  )
 
   const {
     register,
@@ -65,6 +70,11 @@ export default function ProfileSettings({
     })
   }
 
+  const handleAvatarChange = (file: File, previewUrl: string) => {
+    setAvatarFile(file)
+    setAvatarPreview(previewUrl)
+  }
+
   const onSubmit = async (data: RegisterUserDto) => {
     let userLocation: LocationPoint
 
@@ -72,6 +82,12 @@ export default function ProfileSettings({
       userLocation = await handleGetLocation()
     } catch (err) {
       console.error('Failed to get location', err)
+      return
+    }
+
+    // Validation
+    if (!isEditMode && !avatarPreview) {
+      alert('Будь ласка, додайте аватар')
       return
     }
 
@@ -93,6 +109,20 @@ export default function ProfileSettings({
       )
       selectedLookingFor.forEach((item) => formData.append('lookingFor', item))
       selectedLanguages.forEach((lang) => formData.append('languages', lang))
+
+      // Compress and add avatar if changed
+      if (avatarFile) {
+        const avatarCompressionOptions = {
+          maxSizeMB: 0.3,
+          maxWidthOrHeight: 400,
+          useWebWorker: true,
+        }
+        const compressedAvatar = await imageCompression(
+          avatarFile,
+          avatarCompressionOptions
+        )
+        formData.append('avatar', compressedAvatar)
+      }
 
       // Compress photos
       const compressionOptions = {
@@ -130,6 +160,7 @@ export default function ProfileSettings({
       if (isEditMode) {
         alert('Профіль успішно оновлено!')
         setInitialPhotos([...photos])
+        setAvatarFile(null) // Reset avatar file after save
         onRegister?.(newUser, null)
       } else {
         alert('Профіль успішно створено!')
@@ -144,7 +175,8 @@ export default function ProfileSettings({
     }
   }
 
-  const isButtonDisabled = isSubmitting || (isEditMode && !hasChanges())
+  const isButtonDisabled =
+    isSubmitting || (isEditMode && !hasChanges() && !avatarFile)
 
   return (
     <div className="h-full w-full flex items-center justify-center bg-white p-6 overflow-y-auto">
@@ -159,6 +191,16 @@ export default function ProfileSettings({
               Допоможіть іншим дізнатися про вас
             </p>
           </div>
+
+          {/* Avatar Uploader */}
+          <AvatarUploader
+            avatarUrl={avatarPreview || undefined}
+            onAvatarChange={handleAvatarChange}
+            showValidation={!isEditMode}
+          />
+
+          {/* Divider */}
+          <div className="border-t border-gray-100" />
 
           {/* Photo Uploader */}
           <PhotoUploader
@@ -259,7 +301,7 @@ export default function ProfileSettings({
             {isSubmitting
               ? 'Зберігаємо...'
               : isEditMode
-              ? hasChanges()
+              ? hasChanges() || avatarFile
                 ? 'Оновити профіль'
                 : 'Немає змін'
               : 'Створити профіль'}

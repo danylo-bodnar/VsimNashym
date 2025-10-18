@@ -41,10 +41,11 @@ export default function UserMap() {
     fetchUsers()
   }, [position])
 
-  const avatarIcon = (photoId: string | null) =>
+  const avatarIcon = (avatar: string | null) =>
     L.icon({
-      iconUrl:
-        'https://static.vecteezy.com/system/resources/previews/039/609/002/non_2x/funny-clown-avatar-png.png',
+      iconUrl: avatar
+        ? avatar
+        : 'https://static.vecteezy.com/system/resources/previews/039/609/002/non_2x/funny-clown-avatar-png.png',
       iconSize: [40, 40],
       className: 'rounded-full border-2 border-white shadow-md',
     })
