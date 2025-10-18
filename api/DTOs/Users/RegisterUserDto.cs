@@ -1,5 +1,3 @@
-using NetTopologySuite.Geometries;
-
 namespace api.DTOs
 {
     public class RegisterUserDto
@@ -7,6 +5,7 @@ namespace api.DTOs
         public long TelegramId { get; set; }
         public string DisplayName { get; set; } = string.Empty;
         public int Age { get; set; }
+        public IFormFile Avatar { get; set; } = null!;
         public IFormFile[]? ProfilePhotos { get; set; }
         public string? Bio { get; set; }
         public List<string> Interests { get; set; } = new();

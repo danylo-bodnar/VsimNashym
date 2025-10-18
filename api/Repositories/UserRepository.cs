@@ -28,22 +28,25 @@ namespace api.Repositories
         {
             var sql = @"
             SELECT 
-                telegramid,
-                displayname,
-                ST_Y(location) AS latitude,
-                ST_X(location) AS longitude
-            FROM users
-            WHERE id <> @currentUserId
-              AND ST_DWithin(
-                  location::geography,
-                  ST_SetSRID(ST_MakePoint(@lng, @lat), 4326)::geography,
-                  @radiusMeters
-              )
+                u.telegramid,
+                u.displayname,
+                ST_Y(u.location) AS latitude,
+                ST_X(u.location) AS longitude,
+                p.url AS avatar_url
+            FROM users u
+            LEFT JOIN profilephoto a 
+                ON a.userid = u.id AND a.isavatar = true 
+            WHERE u.id <> @currentUserId
+            AND ST_DWithin(
+                u.location::geography,
+                ST_SetSRID(ST_MakePoint(@lng, @lat), 4326)::geography,
+                @radiusMeters
+            )
             ORDER BY ST_Distance(
-                location::geography,
+                u.location::geography,
                 ST_SetSRID(ST_MakePoint(@lng, @lat), 4326)::geography
             );
-        ";
+            ";
 
             var results = new List<NearbyUserDto>();
 
@@ -81,6 +84,9 @@ namespace api.Repositories
                 {
                     TelegramId = reader.GetInt64(reader.GetOrdinal("telegramid")),
                     DisplayName = reader.GetString(reader.GetOrdinal("displayname")),
+                    AvatarUrl = reader.IsDBNull(reader.GetOrdinal("avatar_url"))
+                    ? ""
+                    : reader.GetString(reader.GetOrdinal("avatar_url")),
                     Location = new LocationPoint
                     {
                         Latitude = reader.GetDouble(reader.GetOrdinal("latitude")),
@@ -96,6 +102,7 @@ namespace api.Repositories
         {
             return await _db.Users
                 .Include(u => u.ProfilePhotos)
+                .Include(u => u.Avatar)
                 .FirstOrDefaultAsync(u => u.TelegramId == telegramId);
         }
 

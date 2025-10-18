@@ -34,7 +34,9 @@ namespace api.Services
                 }
             }
 
-            var userModel = dto.ToEntity(uploadedPhotos);
+            (string url, string messageId) avatar = await _fileStorageService.UploadProfilePhotoAsync(dto.Avatar);
+
+            var userModel = dto.ToEntity(avatar, uploadedPhotos);
 
             var user = await _userRepository.CreateAsync(userModel);
 
@@ -83,6 +85,18 @@ namespace api.Services
                     });
                 }
             }
+
+            if (dto.Avatar != null)
+            {
+                await _fileStorageService.DeleteProfilePhotoAsync(user.Avatar.MessageId);
+                var uploadedAvatar = await _fileStorageService.UploadProfilePhotoAsync(dto.Avatar);
+                user.Avatar = new Avatar
+                {
+                    Url = uploadedAvatar.url,
+                    MessageId = uploadedAvatar.messageId,
+                };
+            }
+
 
             await _userRepository.UpdateAsync(user);
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Models;
 
 namespace api.DTOs.Users
 {
@@ -14,6 +15,7 @@ namespace api.DTOs.Users
         public List<string> Interests { get; set; } = new();
         public List<string> LookingFor { get; set; } = new();
         public List<string> Languages { get; set; } = new();
+        public Avatar Avatar { get; set; } = null!;
         public List<ProfilePhotoDto> ProfilePhotos { get; set; } = new();
         public LocationPointDto Location { get; set; } = null!;
         public DateTime CreatedAt { get; set; }

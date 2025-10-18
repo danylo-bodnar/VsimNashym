@@ -25,6 +25,29 @@ namespace api.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("api.Models.Avatar", b =>
+                {
+                    b.Property<string>("MessageId")
+                        .HasColumnType("text")
+                        .HasColumnName("messageid");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("url");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("userid");
+
+                    b.HasKey("MessageId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("avatar");
+                });
+
             modelBuilder.Entity("api.Models.Connection", b =>
                 {
                     b.Property<int>("Id")
@@ -140,6 +163,15 @@ namespace api.Migrations
                     b.ToTable("users");
                 });
 
+            modelBuilder.Entity("api.Models.Avatar", b =>
+                {
+                    b.HasOne("api.Models.User", null)
+                        .WithOne("Avatar")
+                        .HasForeignKey("api.Models.Avatar", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("api.Models.ProfilePhoto", b =>
                 {
                     b.HasOne("api.Models.User", null)
@@ -151,6 +183,8 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Models.User", b =>
                 {
+                    b.Navigation("Avatar");
+
                     b.Navigation("ProfilePhotos");
                 });
 #pragma warning restore 612, 618

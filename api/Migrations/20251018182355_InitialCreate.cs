@@ -54,6 +54,25 @@ namespace api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "avatar",
+                columns: table => new
+                {
+                    messageid = table.Column<string>(type: "text", nullable: false),
+                    url = table.Column<string>(type: "text", nullable: false),
+                    userid = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_avatar", x => x.messageid);
+                    table.ForeignKey(
+                        name: "FK_avatar_users_userid",
+                        column: x => x.userid,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "profilephoto",
                 columns: table => new
                 {
@@ -71,6 +90,12 @@ namespace api.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_avatar_userid",
+                table: "avatar",
+                column: "userid",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_connections_fromtelegramid_totelegramid",
@@ -93,6 +118,9 @@ namespace api.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "avatar");
+
             migrationBuilder.DropTable(
                 name: "connections");
 

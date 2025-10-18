@@ -4,6 +4,7 @@ namespace api.DTOs
     {
         public long TelegramId { get; set; }
         public string DisplayName { get; set; } = null!;
+        public string AvatarUrl { get; set; } = string.Empty;
         public LocationPoint Location { get; set; } = null!;
     }
 

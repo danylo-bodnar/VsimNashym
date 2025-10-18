@@ -7,7 +7,7 @@ namespace api.Mappings
 {
     public static class UserMappers
     {
-        public static User ToEntity(this RegisterUserDto dto, List<(string url, string messageId)>? uploadedPhotos = null)
+        public static User ToEntity(this RegisterUserDto dto, (string url, string messageId) uploadedAvatar, List<(string url, string messageId)>? uploadedPhotos = null)
         {
             return new User
             {
@@ -15,6 +15,13 @@ namespace api.Mappings
                 TelegramId = dto.TelegramId,
                 DisplayName = dto.DisplayName,
                 Age = dto.Age,
+                Avatar =
+                    new Avatar
+                    {
+                        Url = uploadedAvatar.url,
+                        MessageId = uploadedAvatar.messageId
+                    }
+            ,
                 ProfilePhotos = uploadedPhotos?.Select(p => new ProfilePhoto
                 {
                     Url = p.url,
@@ -40,6 +47,7 @@ namespace api.Mappings
                 LookingFor = user.LookingFor,
                 Languages = user.Languages,
                 CreatedAt = user.CreatedAt,
+                Avatar = user.Avatar,
                 ProfilePhotos = user.ProfilePhotos
                     .Select(p => new ProfilePhotoDto
                     {

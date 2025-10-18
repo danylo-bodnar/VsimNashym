@@ -26,6 +26,19 @@ namespace api.Data
                 entity.Property(u => u.Location).HasColumnType("geometry(Point, 4326)");
             });
 
+            modelBuilder.Entity<Avatar>(entity =>
+            {
+                entity.HasKey(a => a.MessageId);
+
+                entity.Property(a => a.Url)
+                      .IsRequired();
+
+                entity.HasOne<User>()
+                      .WithOne(u => u.Avatar)
+                      .HasForeignKey<Avatar>(a => a.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<Connection>(entity =>
             {
                 entity.HasKey(h => h.Id);
