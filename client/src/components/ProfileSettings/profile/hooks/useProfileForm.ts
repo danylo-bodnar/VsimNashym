@@ -6,14 +6,11 @@ import type { PhotoMeta } from '../constants'
 export function useProfileForm(existingUser: User | null) {
   const isEditMode = !!existingUser
 
-  // Avatar state
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    existingUser?.avatar.url || null
-  )
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
-  const [initialAvatarUrl] = useState<string | null>(
-    existingUser?.avatar.url || null
-  )
+  const [avatar, setAvatar] = useState<PhotoMeta>({
+    url: null,
+    file: null,
+    messageId: null,
+  })
 
   // Photos state - Initialize with proper PhotoMeta structure
   const [photos, setPhotos] = useState<PhotoMeta[]>([
@@ -67,13 +64,11 @@ export function useProfileForm(existingUser: User | null) {
   }, [existingUser])
 
   const handleAvatarChange = (file: File, croppedUrl: string) => {
-    setAvatarFile(file)
-    setAvatarUrl(croppedUrl)
+    setAvatar({ url: croppedUrl, file: file, messageId: null })
   }
 
   const handleRemoveAvatar = () => {
-    setAvatarFile(null)
-    setAvatarUrl(null)
+    setAvatar({ url: null, file: null, messageId: null })
   }
 
   const handlePhotoChange = (index: number, file: File | null) => {
@@ -112,8 +107,8 @@ export function useProfileForm(existingUser: User | null) {
     const formValues = form.getValues()
 
     // Check avatar changes
-    if (avatarFile !== null) return true
-    if (avatarUrl !== initialAvatarUrl) return true
+    const avatarChanged = JSON.stringify(avatar) !== JSON.stringify(avatar)
+    if (avatarChanged) return true
 
     // Check form field changes
     if (formValues.displayName !== existingUser?.displayName) return true
@@ -147,8 +142,8 @@ export function useProfileForm(existingUser: User | null) {
 
   return {
     form,
-    avatarUrl,
-    avatarFile,
+    avatar,
+    setAvatar,
     handleAvatarChange,
     handleRemoveAvatar,
     photos,

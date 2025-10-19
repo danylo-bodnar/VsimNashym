@@ -24,6 +24,9 @@ export default function ProfileSettings({
     form,
     photos,
     setInitialPhotos,
+    avatar,
+    setAvatar,
+    handleAvatarChange,
     selectedInterests,
     setSelectedInterests,
     selectedLookingFor,
@@ -38,7 +41,6 @@ export default function ProfileSettings({
   } = useProfileForm(existingUser)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
     existingUser?.avatar.url || null
   )
@@ -64,15 +66,13 @@ export default function ProfileSettings({
         },
         (err) => {
           console.error('Geo error', err)
-          reject(err)
+          resolve({
+            latitude: 58,
+            longitude: 7,
+          })
         }
       )
     })
-  }
-
-  const handleAvatarChange = (file: File, previewUrl: string) => {
-    setAvatarFile(file)
-    setAvatarPreview(previewUrl)
   }
 
   const onSubmit = async (data: RegisterUserDto) => {
@@ -111,14 +111,14 @@ export default function ProfileSettings({
       selectedLanguages.forEach((lang) => formData.append('languages', lang))
 
       // Compress and add avatar if changed
-      if (avatarFile) {
+      if (avatar.file) {
         const avatarCompressionOptions = {
           maxSizeMB: 0.3,
           maxWidthOrHeight: 400,
           useWebWorker: true,
         }
         const compressedAvatar = await imageCompression(
-          avatarFile,
+          avatar.file,
           avatarCompressionOptions
         )
         formData.append('avatar', compressedAvatar)
@@ -160,7 +160,7 @@ export default function ProfileSettings({
       if (isEditMode) {
         alert('Профіль успішно оновлено!')
         setInitialPhotos([...photos])
-        setAvatarFile(null) // Reset avatar file after save
+        debugger
         onRegister?.(newUser, null)
       } else {
         alert('Профіль успішно створено!')
@@ -176,7 +176,7 @@ export default function ProfileSettings({
   }
 
   const isButtonDisabled =
-    isSubmitting || (isEditMode && !hasChanges() && !avatarFile)
+    isSubmitting || (isEditMode && !hasChanges() && !avatar.file)
 
   return (
     <div className="h-full w-full flex items-center justify-center bg-white p-6 overflow-y-auto">
@@ -301,7 +301,7 @@ export default function ProfileSettings({
             {isSubmitting
               ? 'Зберігаємо...'
               : isEditMode
-              ? hasChanges() || avatarFile
+              ? hasChanges() || avatar.file
                 ? 'Оновити профіль'
                 : 'Немає змін'
               : 'Створити профіль'}

@@ -6,7 +6,11 @@ import type { User } from '@/types/user'
 
 const radius = 5000
 
-export default function UserMap() {
+type Props = {
+  existingUser: User | null
+}
+
+export default function UserMap({ existingUser }: Props) {
   const [position, setPosition] = useState<[number, number] | null>(null)
   const [users, setUsers] = useState<User[]>([])
 
@@ -60,7 +64,10 @@ export default function UserMap() {
           />
 
           {/* Current user marker */}
-          <Marker position={position} icon={avatarIcon(null)}>
+          <Marker
+            position={position}
+            icon={avatarIcon(existingUser?.avatar.url || null)}
+          >
             <Popup>You are here</Popup>
           </Marker>
           <Circle

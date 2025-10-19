@@ -10,7 +10,7 @@ import { getUserById } from './features/users/api'
 
 function App() {
   const { tg, user } = useTelegram()
-  const [currentTab, setCurrentTab] = useState<'map' | 'profile'>('profile')
+  const [currentTab, setCurrentTab] = useState<'map' | 'profile'>('map')
   const [userData, setUserData] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [jwt, setJwt] = useState<string | null>(null)
@@ -89,7 +89,9 @@ function App() {
       {/* Content section */}
 
       <div className="flex-1 overflow-hidden">
-        {currentTab === 'map' && isAuthenticated && <UserMap />}
+        {currentTab === 'map' && isAuthenticated && (
+          <UserMap existingUser={userData} />
+        )}
         {currentTab === 'profile' && (
           <ProfileSettings
             telegramId={user.id}

@@ -32,10 +32,10 @@ namespace api.Repositories
                 u.displayname,
                 ST_Y(u.location) AS latitude,
                 ST_X(u.location) AS longitude,
-                p.url AS avatar_url
+                a.url AS avatar_url
             FROM users u
-            LEFT JOIN profilephoto a 
-                ON a.userid = u.id AND a.isavatar = true 
+            LEFT JOIN avatar a 
+                ON a.userid = u.id
             WHERE u.id <> @currentUserId
             AND ST_DWithin(
                 u.location::geography,
