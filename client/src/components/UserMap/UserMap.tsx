@@ -5,7 +5,7 @@ import { getNearbyUsers, getUserById, sendHi } from '@/features/users/api'
 import type { NearbyUser, User } from '@/types/user'
 import UserProfile from '../UserProfile/UserProfile'
 
-const radius = 5000
+const radius = 500000
 
 type Props = {
   existingUser: User | null

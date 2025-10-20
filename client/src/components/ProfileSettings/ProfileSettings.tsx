@@ -41,9 +41,6 @@ export default function ProfileSettings({
   } = useProfileForm(existingUser)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(
-    existingUser?.avatar.url || null
-  )
 
   const {
     register,
@@ -86,7 +83,7 @@ export default function ProfileSettings({
     }
 
     // Validation
-    if (!isEditMode && !avatarPreview) {
+    if (!isEditMode && !avatar.url) {
       alert('Будь ласка, додайте аватар')
       return
     }
@@ -194,7 +191,7 @@ export default function ProfileSettings({
 
           {/* Avatar Uploader */}
           <AvatarUploader
-            avatarUrl={avatarPreview || undefined}
+            avatarUrl={avatar.url || undefined}
             onAvatarChange={handleAvatarChange}
             showValidation={!isEditMode}
           />
