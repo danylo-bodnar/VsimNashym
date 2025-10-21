@@ -59,7 +59,11 @@ export function useProfileForm(existingUser: User | null) {
       setInitialPhotos(JSON.parse(JSON.stringify(mappedPhotos)))
 
       // Load avatar
-      setAvatar(existingUser.avatar)
+      setAvatar({
+        url: existingUser.avatar.url || null,
+        file: null,
+        messageId: existingUser.avatar.messageId || null,
+      })
 
       // Load selections
       setSelectedInterests(existingUser.interests || [])

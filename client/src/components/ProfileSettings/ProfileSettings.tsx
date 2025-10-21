@@ -40,7 +40,6 @@ export default function ProfileSettings({
   } = useProfileForm(existingUser)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
-
   const {
     register,
     handleSubmit,

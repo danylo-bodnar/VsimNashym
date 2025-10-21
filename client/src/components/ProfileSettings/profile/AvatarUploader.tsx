@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Cropper from 'react-easy-crop'
 
 type AvatarUploaderProps = {
@@ -18,6 +18,12 @@ export default function AvatarUploader({
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [showCropper, setShowCropper] = useState(false)
+
+  useEffect(() => {
+    if (avatarUrl) {
+      setPreviewUrl(avatarUrl)
+    }
+  }, [avatarUrl])
 
   const onCropComplete = useCallback((_: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels)
