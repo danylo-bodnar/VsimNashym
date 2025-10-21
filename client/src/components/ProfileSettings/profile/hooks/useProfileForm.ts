@@ -40,21 +40,26 @@ export function useProfileForm(existingUser: User | null) {
   useEffect(() => {
     if (existingUser) {
       // Load existing photos
-      const loadedPhotos: PhotoMeta[] = existingUser.profilePhotos.map(
-        (photo) => ({
-          url: photo.url,
-          messageId: photo.messageId || null,
-          file: null,
-        })
-      )
+      const mappedPhotos: PhotoMeta[] = [
+        { url: null, file: null, messageId: null },
+        { url: null, file: null, messageId: null },
+        { url: null, file: null, messageId: null },
+      ]
+      existingUser.profilePhotos.forEach((photo) => {
+        if (photo.slotIndex >= 0 && photo.slotIndex < 3) {
+          mappedPhotos[photo.slotIndex] = {
+            url: photo.url,
+            file: null,
+            messageId: photo.messageId,
+          }
+        }
+      })
 
-      // Pad with empty slots
-      while (loadedPhotos.length < 3) {
-        loadedPhotos.push({ url: null, file: null, messageId: null })
-      }
+      setPhotos(mappedPhotos)
+      setInitialPhotos(JSON.parse(JSON.stringify(mappedPhotos)))
 
-      setPhotos(loadedPhotos)
-      setInitialPhotos(JSON.parse(JSON.stringify(loadedPhotos)))
+      // Load avatar
+      setAvatar(existingUser.avatar)
 
       // Load selections
       setSelectedInterests(existingUser.interests || [])

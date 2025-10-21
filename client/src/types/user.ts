@@ -10,6 +10,7 @@ export type User = {
   profilePhotos: Array<{
     url: string
     messageId: string
+    slotIndex: number
   }>
   interests: string[]
   lookingFor: string[]

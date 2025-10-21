@@ -7,7 +7,7 @@ namespace api.Mappings
 {
     public static class UserMappers
     {
-        public static User ToEntity(this RegisterUserDto dto, (string url, string messageId) uploadedAvatar, List<(string url, string messageId)>? uploadedPhotos = null)
+        public static User ToEntity(this RegisterUserDto dto, (string url, string messageId) uploadedAvatar, List<(string url, string messageId, int slotIndex)>? uploadedPhotos = null)
         {
             return new User
             {
@@ -25,7 +25,9 @@ namespace api.Mappings
                 ProfilePhotos = uploadedPhotos?.Select(p => new ProfilePhoto
                 {
                     Url = p.url,
-                    MessageId = p.messageId
+                    MessageId = p.messageId,
+                    SlotIndex = p.slotIndex,
+
                 }).ToList() ?? new List<ProfilePhoto>(),
                 Location = new Point(dto.Longitude, dto.Latitude) { SRID = 4326 },
                 Bio = dto.Bio,
@@ -52,7 +54,8 @@ namespace api.Mappings
                     .Select(p => new ProfilePhotoDto
                     {
                         Url = p.Url,
-                        MessageId = p.MessageId
+                        MessageId = p.MessageId,
+                        SlotIndex = p.SlotIndex
                     })
                     .ToList(),
                 Location = new LocationPointDto

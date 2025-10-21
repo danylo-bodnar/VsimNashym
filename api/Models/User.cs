@@ -34,6 +34,7 @@ namespace api.Models
         [Key]
         public string MessageId { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;
+        public int SlotIndex { get; set; }
         public Guid UserId { get; set; }
     }
 

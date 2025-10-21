@@ -26,6 +26,7 @@ namespace api.DTOs.Users
         public Guid Id { get; set; }
         public string Url { get; set; } = string.Empty;
         public string MessageId { get; set; } = string.Empty;
+        public int SlotIndex { get; set; }
     }
 
     public class LocationPointDto

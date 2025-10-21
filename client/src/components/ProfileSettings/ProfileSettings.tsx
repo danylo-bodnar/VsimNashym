@@ -25,7 +25,6 @@ export default function ProfileSettings({
     photos,
     setInitialPhotos,
     avatar,
-    setAvatar,
     handleAvatarChange,
     selectedInterests,
     setSelectedInterests,
@@ -127,21 +126,32 @@ export default function ProfileSettings({
         maxWidthOrHeight: 512,
         useWebWorker: true,
       }
-
+      // Compress new photos in parallel
       const compressedPhotos = await Promise.all(
-        photos.map(async (photo) => {
-          if (!photo?.file) return null
-          return await imageCompression(photo.file, compressionOptions)
+        photos.map(async (photo, index) => {
+          if (photo.file) {
+            const compressed = await imageCompression(
+              photo.file,
+              compressionOptions
+            )
+            return { file: compressed, slot: index }
+          }
+          return null
         })
       )
 
-      compressedPhotos.forEach((file) => {
-        if (file) formData.append('profilePhotos', file)
+      // Append new photos and their slot indices to FormData
+      compressedPhotos.forEach((p) => {
+        if (p) {
+          formData.append('ProfilePhotos', p.file)
+          formData.append('ProfilePhotoSlotIndices', p.slot.toString())
+        }
       })
 
+      // Append existing photo message IDs to FormData
       photos.forEach((photo) => {
-        if (photo?.messageId) {
-          formData.append('existingPhotoMessageIds', photo.messageId)
+        if (!photo.file && photo.messageId) {
+          formData.append('ExistingPhotoMessageIds', photo.messageId)
         }
       })
 

@@ -7,6 +7,7 @@ namespace api.DTOs
         public int Age { get; set; }
         public IFormFile Avatar { get; set; } = null!;
         public IFormFile[]? ProfilePhotos { get; set; }
+        public List<int> ProfilePhotoSlotIndices { get; set; } = null!;
         public string? Bio { get; set; }
         public List<string> Interests { get; set; } = new();
         public List<string> LookingFor { get; set; } = new();

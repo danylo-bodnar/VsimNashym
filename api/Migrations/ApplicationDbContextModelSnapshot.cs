@@ -89,6 +89,10 @@ namespace api.Migrations
                         .HasColumnType("text")
                         .HasColumnName("messageid");
 
+                    b.Property<int>("SlotIndex")
+                        .HasColumnType("integer")
+                        .HasColumnName("slotindex");
+
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("text")
@@ -183,7 +187,8 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Models.User", b =>
                 {
-                    b.Navigation("Avatar");
+                    b.Navigation("Avatar")
+                        .IsRequired();
 
                     b.Navigation("ProfilePhotos");
                 });

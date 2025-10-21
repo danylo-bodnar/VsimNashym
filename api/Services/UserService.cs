@@ -24,13 +24,17 @@ namespace api.Services
             var exists = await _userRepository.Exists(dto.TelegramId);
             if (exists) throw new ApplicationException($"User with TelegramId {dto.TelegramId} already exists.");
 
-            var uploadedPhotos = new List<(string url, string messageId)>();
+            var uploadedPhotos = new List<(string url, string messageId, int slotIndex)>();
             if (dto.ProfilePhotos != null && dto.ProfilePhotos.Any())
             {
-                foreach (var file in dto.ProfilePhotos)
+                for (int i = 0; i < dto.ProfilePhotos.Length; i++)
                 {
+                    var file = dto.ProfilePhotos[i];
+                    var slotIndex = dto.ProfilePhotoSlotIndices[i];
+
                     var uploaded = await _fileStorageService.UploadProfilePhotoAsync(file);
-                    uploadedPhotos.Add(uploaded);
+
+                    uploadedPhotos.Add((uploaded.url, uploaded.messageId, slotIndex));
                 }
             }
 
@@ -46,17 +50,33 @@ namespace api.Services
         public async Task<User> UpdateUserAsync(long telegramId, UpdateUserDto dto)
         {
             var user = await _userRepository.GetByTelegramIdAsync(telegramId);
-            if (user == null) throw new KeyNotFoundException($"User with TelegramId {telegramId} not found.");
+            if (user == null)
+                throw new KeyNotFoundException($"User with TelegramId {telegramId} not found.");
 
-            if (!string.IsNullOrWhiteSpace(dto.DisplayName)) user.DisplayName = dto.DisplayName;
-            if (dto.Age.HasValue) user.Age = dto.Age.Value;
-            if (!string.IsNullOrWhiteSpace(dto.Bio)) user.Bio = dto.Bio;
-            if (dto.Interests != null) user.Interests = dto.Interests;
-            if (dto.LookingFor != null) user.LookingFor = dto.LookingFor;
-            if (dto.Languages != null) user.Languages = dto.Languages;
+            // --- BASIC FIELDS ---
+            if (!string.IsNullOrWhiteSpace(dto.DisplayName))
+                user.DisplayName = dto.DisplayName;
+
+            if (dto.Age.HasValue)
+                user.Age = dto.Age.Value;
+
+            if (!string.IsNullOrWhiteSpace(dto.Bio))
+                user.Bio = dto.Bio;
+
+            if (dto.Interests != null)
+                user.Interests = dto.Interests;
+
+            if (dto.LookingFor != null)
+                user.LookingFor = dto.LookingFor;
+
+            if (dto.Languages != null)
+                user.Languages = dto.Languages;
 
             if (dto.Latitude.HasValue && dto.Longitude.HasValue)
                 user.Location = new Point(dto.Longitude.Value, dto.Latitude.Value) { SRID = 4326 };
+
+            // --- PHOTOS ---
+            var finalPhotos = new ProfilePhoto[3];
 
             if (dto.ExistingPhotoMessageIds != null)
             {
@@ -67,41 +87,62 @@ namespace api.Services
                 foreach (var photo in photosToRemove)
                 {
                     await _fileStorageService.DeleteProfilePhotoAsync(photo.MessageId);
-
                     user.ProfilePhotos.Remove(photo);
                 }
             }
 
-            if (dto.ProfilePhotos != null && dto.ProfilePhotos.Any())
+            if (dto.ProfilePhotos != null && dto.ProfilePhotoSlotIndices != null)
             {
-                foreach (var file in dto.ProfilePhotos)
+                for (int i = 0; i < dto.ProfilePhotos.Length; i++)
                 {
+                    var file = dto.ProfilePhotos[i];
+                    var slotIndex = dto.ProfilePhotoSlotIndices[i];
+
+                    if (slotIndex < 0 || slotIndex > 2) continue;
+
                     var uploaded = await _fileStorageService.UploadProfilePhotoAsync(file);
-                    user.ProfilePhotos.Add(new ProfilePhoto
+
+                    var existing = user.ProfilePhotos.FirstOrDefault(p => p.SlotIndex == slotIndex);
+                    if (existing != null)
                     {
-                        Url = uploaded.url,
-                        MessageId = uploaded.messageId,
-                        UserId = user.Id,
-                    });
+                        await _fileStorageService.DeleteProfilePhotoAsync(existing.MessageId);
+                        existing.Url = uploaded.url;
+                        existing.MessageId = uploaded.messageId;
+                    }
+                    else
+                    {
+                        user.ProfilePhotos.Add(new ProfilePhoto
+                        {
+                            Url = uploaded.url,
+                            MessageId = uploaded.messageId,
+                            SlotIndex = slotIndex,
+                            UserId = user.Id
+                        });
+                    }
                 }
             }
 
+            // --- AVATAR ---
             if (dto.Avatar != null)
             {
-                await _fileStorageService.DeleteProfilePhotoAsync(user.Avatar.MessageId);
+                if (user.Avatar != null)
+                {
+                    await _fileStorageService.DeleteProfilePhotoAsync(user.Avatar.MessageId);
+                }
+
                 var uploadedAvatar = await _fileStorageService.UploadProfilePhotoAsync(dto.Avatar);
                 user.Avatar = new Avatar
                 {
                     Url = uploadedAvatar.url,
                     MessageId = uploadedAvatar.messageId,
+                    UserId = user.Id,
                 };
             }
 
-
             await _userRepository.UpdateAsync(user);
-
             return user;
         }
+
 
         public async Task<IEnumerable<NearbyUserDto>> FindNearbyUsersAsync(Guid currentUserId, double lat, double lng, double radiusMeters)
         {

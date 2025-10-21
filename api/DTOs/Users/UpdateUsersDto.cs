@@ -5,6 +5,7 @@ public class UpdateUserDto
     public int? Age { get; set; }
     public IFormFile? Avatar { get; set; }
     public IFormFile[]? ProfilePhotos { get; set; }
+    public List<int>? ProfilePhotoSlotIndices { get; set; } // <-- NEW
     public List<string>? ExistingPhotoMessageIds { get; set; }
     public string? Bio { get; set; }
     public List<string>? Interests { get; set; }
