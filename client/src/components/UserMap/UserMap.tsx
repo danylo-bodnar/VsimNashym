@@ -1,14 +1,19 @@
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet'
 import L from 'leaflet'
 import { useEffect, useState } from 'react'
-import { getNearbyUsers, getUserById, sendHi } from '@/features/users/api'
+import {
+  getNearbyUsers,
+  getUserById,
+  sendHi,
+  updateUserLocation,
+} from '@/features/users/api'
 import type { NearbyUser, User } from '@/types/user'
 import UserProfile from '../UserProfile/UserProfile'
 
 const radius = 500000
 
 type Props = {
-  existingUser: User | null
+  existingUser: User
 }
 
 export default function UserMap({ existingUser }: Props) {
@@ -18,26 +23,47 @@ export default function UserMap({ existingUser }: Props) {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
 
   useEffect(() => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setPosition([pos.coords.latitude, pos.coords.longitude]),
-        (err) => {
-          // TODO: rewrite it
-          console.error('Geo error', err)
-          setPosition([58.1467, 7.9956]) // fallback to Kristiansand
+    if (!('geolocation' in navigator)) return
+
+    let lastSentPosition: [number, number] | null = null
+
+    const watchId = navigator.geolocation.watchPosition(
+      async (pos) => {
+        const currentPos: [number, number] = [
+          pos.coords.latitude,
+          pos.coords.longitude,
+        ]
+        setPosition(currentPos)
+
+        if (
+          !lastSentPosition ||
+          getDistance(lastSentPosition, currentPos) > 200
+        ) {
+          await updateUserLocation(
+            existingUser.telegramId,
+            currentPos[0],
+            currentPos[1],
+          )
+          lastSentPosition = currentPos
+          console.log('Position updated in DB')
         }
-      )
-    } else {
-      setPosition([58.1467, 7.9956])
-    }
+      },
+      (err) => console.error('Geo error', err),
+      {
+        enableHighAccuracy: false,
+        maximumAge: 60000,
+        timeout: 10000,
+      },
+    )
+
+    return () => navigator.geolocation.clearWatch(watchId)
   }, [])
 
   useEffect(() => {
     if (!position) return
 
-    const fetchUsers = async () => {
+    const fetchNearbyUsers = async () => {
       try {
-        // TODO: avoid hardcoding distance value
         const nearby = await getNearbyUsers(position[0], position[1], radius)
         setNearbyUsers(nearby)
       } catch (err) {
@@ -45,8 +71,24 @@ export default function UserMap({ existingUser }: Props) {
       }
     }
 
-    fetchUsers()
+    fetchNearbyUsers()
   }, [position])
+
+  function getDistance(
+    [lat1, lon1]: [number, number],
+    [lat2, lon2]: [number, number],
+  ) {
+    const toRad = (value: number) => (value * Math.PI) / 180
+    const R = 6371000 // Earth radius in meters
+
+    const dLat = toRad(lat2 - lat1)
+    const dLon = toRad(lon2 - lon1)
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
+  }
 
   const handleViewProfile = async (telegramId: number) => {
     setIsLoadingProfile(true)

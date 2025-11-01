@@ -143,7 +143,6 @@ namespace api.Services
             return user;
         }
 
-
         public async Task<IEnumerable<NearbyUserDto>> FindNearbyUsersAsync(Guid currentUserId, double lat, double lng, double radiusMeters)
         {
             var currentLocation = new Point(lng, lat) { SRID = 4326 };
@@ -163,6 +162,24 @@ namespace api.Services
             {
                 return null;
             }
+
+            return UserMappers.ToUserDto(user);
+        }
+
+        public async Task<UserDto?> UpdateUserLocationAsync(long telegramId, UpdateUserLocationDto dto)
+        {
+            var user = await _userRepository.GetByTelegramIdAsync(telegramId);
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException($"User with TelegramId {telegramId} not found.");
+            }
+
+            var newLocation = new Point(dto.Longitude, dto.Latitude) { SRID = 4326 };
+
+            user.Location = newLocation;
+
+            await _userRepository.UpdateAsync(user);
 
             return UserMappers.ToUserDto(user);
         }

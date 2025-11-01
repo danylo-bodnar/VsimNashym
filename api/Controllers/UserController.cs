@@ -88,6 +88,16 @@ namespace api.Controllers
             return Ok(user);
         }
 
+        [HttpPut("{telegramId}/location")]
+        public async Task<IActionResult> UpdateUserLocation(
+                    long telegramId,
+                    [FromBody] UpdateUserLocationDto dto)
+        {
+            var userDto = await _userService.UpdateUserLocationAsync(telegramId, dto);
+
+            return Ok(userDto);
+        }
+
         [Authorize]
         [HttpGet("nearby")]
         public async Task<IActionResult> GetNearbyUsers(double lat, double lng, double radiusMeters)

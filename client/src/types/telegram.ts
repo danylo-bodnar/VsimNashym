@@ -7,22 +7,3 @@ export interface TelegramWebAppUser {
   language_code?: string
   photo_url?: string
 }
-
-export interface Point {
-  latitude: number
-  longitude: number
-}
-
-export function mapTelegramUserToDto(
-  tgUser: TelegramWebAppUser,
-  location: Point
-) {
-  return {
-    telegramId: tgUser.id,
-    displayName:
-      tgUser.username ||
-      `${tgUser.first_name} ${tgUser.last_name || ''}`.trim(),
-    profilePhotoFileId: '',
-    location,
-  }
-}

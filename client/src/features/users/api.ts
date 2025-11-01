@@ -28,10 +28,22 @@ export async function getUserById(telegramId: number): Promise<User> {
   return response.data
 }
 
+export async function updateUserLocation(
+  telegramId: number,
+  latitude: number,
+  longitude: number,
+): Promise<User> {
+  const response = await apiClient.put<User>(`/user/${telegramId}/location`, {
+    latitude,
+    longitude,
+  })
+  return response.data
+}
+
 export async function getNearbyUsers(
   lat: number,
   lng: number,
-  radiusMeters: number
+  radiusMeters: number,
 ): Promise<NearbyUser[]> {
   const response = await apiClient.get<NearbyUser[]>('/user/nearby', {
     params: { lat, lng, radiusMeters },
