@@ -183,5 +183,14 @@ namespace api.Services
 
             return UserMappers.ToUserDto(user);
         }
+
+        public async Task MarkUserActiveAsync(long telegramId)
+        {
+            var user = await _userRepository.GetByTelegramIdAsync(telegramId);
+            if (user == null) return;
+
+            user.LastActiveAt = DateTime.UtcNow;
+            await _userRepository.UpdateAsync(user);
+        }
     }
 }

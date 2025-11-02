@@ -77,6 +77,23 @@ namespace api.Controllers
         }
 
         [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMyProfile()
+        {
+            var telegramIdStr = User.FindFirstValue("telegram_id");
+            if (!long.TryParse(telegramIdStr, out var telegramId))
+                return Unauthorized();
+
+            var user = await _userService.GetUserByTelegramIdAsync(telegramId);
+            await _userService.MarkUserActiveAsync(telegramId);
+
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(user);
+        }
+
+        [Authorize]
         [HttpGet("{telegramId:long}")]
         public async Task<IActionResult> GetUserByTelegramId(long telegramId)
         {

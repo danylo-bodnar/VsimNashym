@@ -19,6 +19,7 @@ namespace api.Models
         public List<string> Languages { get; set; } = new();
         public Point Location { get; set; } = null!;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime LastActiveAt { get; set; } = DateTime.UtcNow;
     }
 
     public class Avatar

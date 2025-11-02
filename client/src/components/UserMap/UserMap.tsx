@@ -166,6 +166,9 @@ export default function UserMap({ existingUser }: Props) {
                   <p className="font-bold text-lg text-center text-black">
                     {u.displayName}
                   </p>
+                  <p className="text-sm text-gray-600 text-center mb-2">
+                    Last active: {u.lastActive}
+                  </p>
                   <button
                     onClick={() => handleViewProfile(u.telegramId)}
                     disabled={isLoadingProfile}

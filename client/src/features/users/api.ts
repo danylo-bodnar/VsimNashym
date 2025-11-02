@@ -28,6 +28,11 @@ export async function getUserById(telegramId: number): Promise<User> {
   return response.data
 }
 
+export async function getMyProfile(): Promise<User> {
+  const response = await apiClient.get<User>(`/user/me`)
+  return response.data
+}
+
 export async function updateUserLocation(
   telegramId: number,
   latitude: number,

@@ -1,4 +1,4 @@
-namespace api.DTOs
+namespace api.DTOs.Users
 {
     public class NearbyUserDto
     {
@@ -6,6 +6,7 @@ namespace api.DTOs
         public string DisplayName { get; set; } = null!;
         public string AvatarUrl { get; set; } = string.Empty;
         public LocationPoint Location { get; set; } = null!;
+        public string LastActive { get; set; } = string.Empty;
     }
 
     public class LocationPoint

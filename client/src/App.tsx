@@ -6,7 +6,7 @@ import BottomNav from './components/BottomNav/BottomNav'
 import type { User } from './types/user'
 import Loader from './components/Loader/Loader'
 import { telegramLogin } from './features/auth/api'
-import { getUserById } from './features/users/api'
+import { getMyProfile, getUserById } from './features/users/api'
 
 function App() {
   const { tg, user } = useTelegram()
@@ -47,7 +47,7 @@ function App() {
       }
 
       try {
-        const userData = await getUserById(user.id)
+        const userData = await getMyProfile()
         console.log(userData)
         setUserData(userData)
       } catch (error: any) {

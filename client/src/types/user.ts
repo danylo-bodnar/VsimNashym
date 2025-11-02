@@ -25,6 +25,7 @@ export type NearbyUser = {
   displayName: string
   avatarUrl: string | null
   location: LocationPoint
+  lastActive: string
 }
 
 export type LocationPoint = {

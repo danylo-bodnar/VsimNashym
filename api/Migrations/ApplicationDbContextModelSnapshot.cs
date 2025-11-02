@@ -145,6 +145,10 @@ namespace api.Migrations
                         .HasColumnType("text[]")
                         .HasColumnName("languages");
 
+                    b.Property<DateTime>("LastActiveAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lastactiveat");
+
                     b.Property<Point>("Location")
                         .IsRequired()
                         .HasColumnType("geometry(Point, 4326)")

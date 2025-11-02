@@ -1,5 +1,6 @@
 using api.Data;
-using api.DTOs;
+using api.DTOs.Users;
+using api.Extensions;
 using api.Interfaces;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ namespace api.Repositories
                 ST_Y(u.location) AS latitude,
                 ST_X(u.location) AS longitude,
                 a.url AS avatar_url
+                u.lastactiveat
             FROM users u
             LEFT JOIN avatar a 
                 ON a.userid = u.id
@@ -91,7 +93,8 @@ namespace api.Repositories
                     {
                         Latitude = reader.GetDouble(reader.GetOrdinal("latitude")),
                         Longitude = reader.GetDouble(reader.GetOrdinal("longitude"))
-                    }
+                    },
+                    LastActive = reader.GetDateTime(reader.GetOrdinal("lastactiveat")).GetLastActiveLabel()
                 });
             }
 
