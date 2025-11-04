@@ -33,7 +33,7 @@ namespace api.Repositories
                 u.displayname,
                 ST_Y(u.location) AS latitude,
                 ST_X(u.location) AS longitude,
-                a.url AS avatar_url
+                a.url AS avatar_url,
                 u.lastactiveat
             FROM users u
             LEFT JOIN avatar a 
