@@ -78,16 +78,21 @@ namespace api.Services
             // --- PHOTOS ---
             var finalPhotos = new ProfilePhoto[3];
 
-            if (dto.ExistingPhotoMessageIds != null)
+            foreach (var photo in user.ProfilePhotos)
             {
-                var photosToRemove = user.ProfilePhotos
-                    .Where(p => !dto.ExistingPhotoMessageIds.Contains(p.MessageId))
-                    .ToList();
+                if (photo.SlotIndex >= 0 && photo.SlotIndex < 3)
+                    finalPhotos[photo.SlotIndex] = photo;
+            }
 
-                foreach (var photo in photosToRemove)
+            var keepMessageIds = dto.ExistingPhotoMessageIds ?? new List<string>();
+
+            for (int i = 0; i < finalPhotos.Length; i++)
+            {
+                var photo = finalPhotos[i];
+                if (photo != null && !keepMessageIds.Contains(photo.MessageId))
                 {
                     await _fileStorageService.DeleteProfilePhotoAsync(photo.MessageId);
-                    user.ProfilePhotos.Remove(photo);
+                    finalPhotos[i] = null;
                 }
             }
 
@@ -96,31 +101,28 @@ namespace api.Services
                 for (int i = 0; i < dto.ProfilePhotos.Length; i++)
                 {
                     var file = dto.ProfilePhotos[i];
-                    var slotIndex = dto.ProfilePhotoSlotIndices[i];
+                    var slot = dto.ProfilePhotoSlotIndices[i];
 
-                    if (slotIndex < 0 || slotIndex > 2) continue;
+                    if (slot < 0 || slot > 2) continue;
 
                     var uploaded = await _fileStorageService.UploadProfilePhotoAsync(file);
 
-                    var existing = user.ProfilePhotos.FirstOrDefault(p => p.SlotIndex == slotIndex);
-                    if (existing != null)
+                    if (finalPhotos[slot] != null)
+                        await _fileStorageService.DeleteProfilePhotoAsync(finalPhotos[slot].MessageId);
+
+                    finalPhotos[slot] = new ProfilePhoto
                     {
-                        await _fileStorageService.DeleteProfilePhotoAsync(existing.MessageId);
-                        existing.Url = uploaded.url;
-                        existing.MessageId = uploaded.messageId;
-                    }
-                    else
-                    {
-                        user.ProfilePhotos.Add(new ProfilePhoto
-                        {
-                            Url = uploaded.url,
-                            MessageId = uploaded.messageId,
-                            SlotIndex = slotIndex,
-                            UserId = user.Id
-                        });
-                    }
+                        Url = uploaded.url,
+                        MessageId = uploaded.messageId,
+                        SlotIndex = slot,
+                        UserId = user.Id
+                    };
                 }
             }
+
+            user.ProfilePhotos = finalPhotos
+                .Where(p => p != null)
+                .ToList()!;
 
             // --- AVATAR ---
             if (dto.Avatar != null)

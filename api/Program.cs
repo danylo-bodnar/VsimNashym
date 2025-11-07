@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using api.Options;
 using FluentValidation;
 using api.Exceptions;
+using Supabase;
 
 Env.Load();
 
@@ -73,20 +74,24 @@ builder.Services.AddSingleton<IFileStorageService>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
 
-    var botToken = configuration["DISCORD_BOT_TOKEN"];
-    var channelIdStr = configuration["DISCORD_CHANNEL_ID"];
+    var supabaseUrl = configuration["Supabase:Url"];
+    var supabaseApiKey = configuration["Supabase:ApiKey"];
+    var bucketName = configuration["Supabase:BucketName"];
+    var logger = provider.GetRequiredService<ILogger<SupabaseFileStorageService>>();
 
-    if (string.IsNullOrWhiteSpace(botToken))
-        throw new InvalidOperationException("Discord BotToken is not configured.");
+    if (string.IsNullOrWhiteSpace(supabaseUrl))
+        throw new InvalidOperationException("Supabase URL is not configured.");
 
-    if (string.IsNullOrWhiteSpace(channelIdStr) || !ulong.TryParse(channelIdStr, out var channelId))
-        throw new InvalidOperationException("Discord ChannelId is not configured or invalid.");
+    if (string.IsNullOrWhiteSpace(supabaseApiKey))
+        throw new InvalidOperationException("Supabase API key is not configured.");
 
-    return new DiscordFileStorageService(botToken, channelId);
+    if (string.IsNullOrWhiteSpace(bucketName))
+        throw new InvalidOperationException("Supabase bucket name is not configured.");
+
+    return new SupabaseFileStorageService(supabaseUrl, supabaseApiKey, bucketName, logger);
 });
 
-
-// Controllers
+// Controllers 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

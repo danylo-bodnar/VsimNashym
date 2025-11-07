@@ -86,7 +86,7 @@ export default function ProfileSettings({
       return
     }
 
-    if (!isEditMode && !photos.some((p) => p.url)) {
+    if (!photos.some((p) => p.url)) {
       alert('Будь ласка, додайте хоча б одне фото')
       return
     }
