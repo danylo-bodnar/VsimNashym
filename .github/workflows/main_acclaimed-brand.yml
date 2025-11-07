@@ -24,19 +24,20 @@ jobs:
         with:
           dotnet-version: "8.x"
 
+      # Build step
       - name: Build project
-        run: dotnet build --configuration Release
-        working-directory: ./api
+        run: dotnet build ./api/api.csproj --configuration Release
 
+      # Publish step
       - name: Publish project
         run: dotnet publish ./api/api.csproj -c Release -o ./publish
-        working-directory: ./api
 
+      # Upload the published artifact
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: dotnet-app
-          path: ./api/publish
+          path: ./publish
 
   deploy:
     runs-on: windows-latest
@@ -64,4 +65,4 @@ jobs:
         with:
           app-name: "acclaimed-brand"
           slot-name: "Production"
-          package: ./api/publish
+          package: ./publish
