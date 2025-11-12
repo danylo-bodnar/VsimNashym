@@ -101,7 +101,7 @@ export function useProfileForm(existingUser: User | null) {
   const toggleSelection = (
     item: string,
     selected: string[],
-    setSelected: (items: string[]) => void
+    setSelected: (items: string[]) => void,
   ) => {
     if (selected.includes(item)) {
       setSelected(selected.filter((i) => i !== item))
@@ -110,39 +110,42 @@ export function useProfileForm(existingUser: User | null) {
     }
   }
 
+  const displayName = form.watch('displayName')
+  const age = form.watch('age')
+  const bio = form.watch('bio')
+
   const hasChanges = (): boolean => {
     if (!isEditMode) return true
 
-    const formValues = form.getValues()
-
-    // Check avatar changes
-    const avatarChanged = JSON.stringify(avatar) !== JSON.stringify(avatar)
-    if (avatarChanged) return true
-
-    // Check form field changes
-    if (formValues.displayName !== existingUser?.displayName) return true
-    if (formValues.age !== existingUser?.age) return true
-    if (formValues.bio !== existingUser?.bio) return true
-
-    // Check photos changes
-    const photosChanged =
-      JSON.stringify(photos) !== JSON.stringify(initialPhotos)
-    if (photosChanged) return true
-
-    // Check multi-selects
+    // Avatar
     if (
-      JSON.stringify(selectedInterests.sort()) !==
-      JSON.stringify((existingUser?.interests || []).sort())
+      avatar.messageId !== existingUser?.avatar?.messageId ||
+      avatar.url !== existingUser?.avatar?.url
+    )
+      return true
+
+    // Form fields
+    if (displayName !== existingUser?.displayName) return true
+    if (age !== existingUser?.age) return true
+    if (bio !== existingUser?.bio) return true
+
+    // Photos
+    if (JSON.stringify(photos) !== JSON.stringify(initialPhotos)) return true
+
+    // Multi-selects
+    if (
+      JSON.stringify([...selectedInterests].sort()) !==
+      JSON.stringify([...(existingUser?.interests || [])].sort())
     )
       return true
     if (
-      JSON.stringify(selectedLookingFor.sort()) !==
-      JSON.stringify((existingUser?.lookingFor || []).sort())
+      JSON.stringify([...selectedLookingFor].sort()) !==
+      JSON.stringify([...(existingUser?.lookingFor || [])].sort())
     )
       return true
     if (
-      JSON.stringify(selectedLanguages.sort()) !==
-      JSON.stringify((existingUser?.languages || []).sort())
+      JSON.stringify([...selectedLanguages].sort()) !==
+      JSON.stringify([...(existingUser?.languages || [])].sort())
     )
       return true
 
