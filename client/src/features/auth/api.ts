@@ -15,18 +15,15 @@ interface JwtPayload {
 
 export async function telegramLogin(telegramId: number): Promise<string> {
   try {
-    console.log(`Attempting Telegram login for ID: ${telegramId}`)
-
     const response = await apiClient.post<TelegramLoginResponse>(
       '/Auth/telegram-login',
-      { TelegramId: telegramId } as TelegramLoginRequest
+      { TelegramId: telegramId } as TelegramLoginRequest,
     )
 
     const token = response.data.token
     if (!token) throw new Error('No token received from server')
 
     localStorage.setItem('accessToken', token)
-    console.log('Telegram login successful')
     return token
   } catch (error: any) {
     if (error.response?.status === 401) {

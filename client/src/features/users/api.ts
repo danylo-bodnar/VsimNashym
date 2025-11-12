@@ -53,7 +53,6 @@ export async function getNearbyUsers(
   const response = await apiClient.get<NearbyUser[]>('/user/nearby', {
     params: { lat, lng, radiusMeters },
   })
-  console.log('response data', response.data)
   return response.data
 }
 

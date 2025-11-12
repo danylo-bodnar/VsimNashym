@@ -45,7 +45,6 @@ export default function UserMap({ existingUser }: Props) {
             currentPos[1],
           )
           lastSentPosition = currentPos
-          console.log('Position updated in DB')
         }
       },
       (err) => console.error('Geo error', err),

@@ -48,7 +48,6 @@ function App() {
 
       try {
         const userData = await getMyProfile()
-        console.log(userData)
         setUserData(userData)
       } catch (error: any) {
         if (error.response?.status === 404) {
