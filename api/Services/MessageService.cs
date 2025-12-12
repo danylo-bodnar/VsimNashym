@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using api.DTOs.Connections;
-using api.Helpers;
 using api.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
