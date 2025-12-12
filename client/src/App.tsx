@@ -6,7 +6,7 @@ import BottomNav from './components/BottomNav/BottomNav'
 import type { User } from './types/user'
 import Loader from './components/Loader/Loader'
 import { telegramLogin } from './features/auth/api'
-import { getMyProfile, getUserById } from './features/users/api'
+import { getMyProfile } from './features/users/api'
 import { LocationConsent } from './components/LocationConsent/LocationConsent'
 
 function App() {
