@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using api.DTOs.Connections;
+using api.Helpers;
 using api.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -12,12 +13,12 @@ namespace api.Services
     public class MessageService : IMessageService
     {
         private readonly IBotMessenger _botMessenger;
-        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
         private readonly IConnectionService _connectionService;
 
-        public MessageService(IUserRepository userRepository, IConnectionService connectionService, IBotMessenger botMessenger)
+        public MessageService(IUserService userService, IConnectionService connectionService, IBotMessenger botMessenger)
         {
-            _userRepository = userRepository;
+            _userService = userService;
             _botMessenger = botMessenger;
             _connectionService = connectionService;
         }
@@ -33,7 +34,7 @@ namespace api.Services
                 ToTelegramId = toTelegramId
             });
 
-            var fromUser = await _userRepository.GetByTelegramIdAsync(fromTelegramId);
+            var fromUser = await _userService.GetUserByTelegramIdAsync(fromTelegramId);
 
             if (fromUser == null)
             {
@@ -50,5 +51,20 @@ namespace api.Services
 
             await _botMessenger.SendMessageSafeAsync(toTelegramId, $"{fromUser!.DisplayName} says hi 👋", keyboard);
         }
+
+        // async public Task SendLocationConsent(long chatId, long telegramId, string langCode)
+        // {
+        //     string consentText = ConsentTexts.GetConsentText(langCode);
+        //
+        //     var keyboard = new InlineKeyboardMarkup(new[]
+        //            {
+        //     new[]
+        //     {
+        //     InlineKeyboardButton.WithCallbackData("✅", $"locationConsent:{telegramId}")
+        //     }
+        //     });
+        //
+        //     await _botMessenger.SendMessageSafeAsync(chatId, consentText, keyboard);
+        // }
     }
 }

@@ -114,10 +114,28 @@ namespace api.Repositories
             return await _db.Users.AnyAsync(u => u.TelegramId == telegramId);
         }
 
-        public async Task<User> UpdateAsync(User user)
+        public async Task SaveChangesAsync()
         {
             await _db.SaveChangesAsync();
-            return user;
         }
+
+        public Task<List<User>> GetInactiveUsersOlderThanAsync(DateTime cutoff, CancellationToken token)
+        {
+            return _db.Users
+                .Where(u => u.LastActiveAt < cutoff && u.Location != null)
+                .ToListAsync(token);
+        }
+
+        public async Task SaveLocationConsentAsync(long telegramId)
+        {
+            var user = await _db.Users
+                .FirstOrDefaultAsync(u => u.TelegramId == telegramId);
+
+            user.LocationConsent = true;
+            user.LocationConsentAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+        }
+
     }
 }

@@ -21,8 +21,9 @@ namespace api.Services
 
         public async Task<User> RegisterUserAsync(RegisterUserDto dto)
         {
-            var exists = await _userRepository.Exists(dto.TelegramId);
-            if (exists) throw new ApplicationException($"User with TelegramId {dto.TelegramId} already exists.");
+            var user = await _userRepository.GetByTelegramIdAsync(dto.TelegramId);
+
+            var avatarUpload = await _fileStorageService.UploadProfilePhotoAsync(dto.Avatar);
 
             var uploadedPhotos = new List<(string url, string messageId, int slotIndex)>();
             if (dto.ProfilePhotos != null && dto.ProfilePhotos.Any())
@@ -33,16 +34,43 @@ namespace api.Services
                     var slotIndex = dto.ProfilePhotoSlotIndices[i];
 
                     var uploaded = await _fileStorageService.UploadProfilePhotoAsync(file);
-
                     uploadedPhotos.Add((uploaded.url, uploaded.messageId, slotIndex));
                 }
             }
 
-            (string url, string messageId) avatar = await _fileStorageService.UploadProfilePhotoAsync(dto.Avatar);
+            if (user == null)
+            {
+                var userModel = dto.ToEntity(avatarUpload, uploadedPhotos);
+                user = await _userRepository.CreateAsync(userModel);
+            }
+            else
+            {
+                user.DisplayName = dto.DisplayName;
+                user.Age = dto.Age;
+                user.Bio = dto.Bio;
+                user.Languages = dto.Languages;
+                user.Interests = dto.Interests;
+                user.LookingFor = dto.LookingFor;
 
-            var userModel = dto.ToEntity(avatar, uploadedPhotos);
+                user.Avatar = new Avatar
+                {
+                    Url = avatarUpload.url,
+                    MessageId = avatarUpload.messageId,
+                    UserId = user.Id
+                };
 
-            var user = await _userRepository.CreateAsync(userModel);
+                user.ProfilePhotos = uploadedPhotos
+                    .Select(p => new ProfilePhoto
+                    {
+                        Url = p.url,
+                        MessageId = p.messageId,
+                        SlotIndex = p.slotIndex
+                    }).ToList();
+
+                user.HasFullProfile = true;
+
+                await _userRepository.SaveChangesAsync();
+            }
 
             return user;
         }
@@ -141,7 +169,7 @@ namespace api.Services
                 };
             }
 
-            await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveChangesAsync();
             return user;
         }
 
@@ -181,7 +209,7 @@ namespace api.Services
 
             user.Location = newLocation;
 
-            await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveChangesAsync();
 
             return UserMappers.ToUserDto(user);
         }
@@ -192,7 +220,41 @@ namespace api.Services
             if (user == null) return;
 
             user.LastActiveAt = DateTime.UtcNow;
-            await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveChangesAsync();
+        }
+
+        public async Task SaveLocationConsentAsync(long telegramId)
+        {
+            var user = await _userRepository.Exists(telegramId);
+
+            if (!user) { throw new Exception($"User with TelegramId {telegramId} not found."); }
+
+            await _userRepository.SaveLocationConsentAsync(telegramId);
+        }
+
+        public async Task<User> CreateSimpleUserAsync(long telegramId, string firstName, string langCode)
+        {
+            var exists = await _userRepository.Exists(telegramId);
+
+            if (exists)
+            {
+                return (await _userRepository.GetByTelegramIdAsync(telegramId))!;
+            }
+
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                DisplayName = firstName,
+                TelegramId = telegramId,
+                LanguageCode = langCode,
+                HasFullProfile = false,
+                CreatedAt = DateTime.UtcNow,
+                LastActiveAt = DateTime.UtcNow
+            };
+
+            await _userRepository.CreateAsync(user);
+
+            return user;
         }
     }
 }

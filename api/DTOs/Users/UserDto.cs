@@ -19,6 +19,7 @@ namespace api.DTOs.Users
         public List<ProfilePhotoDto> ProfilePhotos { get; set; } = new();
         public LocationPointDto Location { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
+        public bool LocationConsent { get; set; } = false;
     }
 
     public class ProfilePhotoDto

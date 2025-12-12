@@ -45,7 +45,9 @@ namespace api.Controllers
                 interests = user.Interests,
                 lookingFor = user.LookingFor,
                 languages = user.Languages,
-                location = new { latitude = user.Location.Y, longitude = user.Location.X },
+                location = user.Location != null
+                ? new { latitude = user.Location.Y, longitude = user.Location.X }
+                : null,
                 createdAt = user.CreatedAt
             });
         }
@@ -127,5 +129,13 @@ namespace api.Controllers
             return Ok(nearbyUsers);
         }
 
+        [Authorize]
+        [HttpPost("{telegramId:long}/location-consent")]
+        public async Task<IActionResult> AcceptLocationConsent(long telegramId)
+        {
+            await _userService.SaveLocationConsentAsync(telegramId);
+
+            return Ok(new { telegramId, locationConsent = true });
+        }
     }
 }

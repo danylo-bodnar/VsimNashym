@@ -13,5 +13,7 @@ namespace api.Interfaces
         Task<IEnumerable<NearbyUserDto>> FindNearbyUsersAsync(Guid currentUserId, double lat, double lng, double radiusMeters);
         Task<bool> IsUserRegisteredAsync(long telegramId);
         Task MarkUserActiveAsync(long telegramId);
+        Task SaveLocationConsentAsync(long telegramId);
+        Task<User> CreateSimpleUserAsync(long telegramId, string firstName, string langCode);
     }
 }

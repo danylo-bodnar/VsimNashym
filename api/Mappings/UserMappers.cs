@@ -62,7 +62,8 @@ namespace api.Mappings
                 {
                     Latitude = user.Location.Y,
                     Longitude = user.Location.X
-                }
+                },
+                LocationConsent = user.LocationConsent
             };
         }
 

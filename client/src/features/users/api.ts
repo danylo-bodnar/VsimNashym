@@ -36,7 +36,7 @@ export async function getMyProfile(): Promise<User> {
 export async function updateUserLocation(
   telegramId: number,
   latitude: number,
-  longitude: number,
+  longitude: number
 ): Promise<User> {
   const response = await apiClient.put<User>(`/user/${telegramId}/location`, {
     latitude,
@@ -48,7 +48,7 @@ export async function updateUserLocation(
 export async function getNearbyUsers(
   lat: number,
   lng: number,
-  radiusMeters: number,
+  radiusMeters: number
 ): Promise<NearbyUser[]> {
   const response = await apiClient.get<NearbyUser[]>('/user/nearby', {
     params: { lat, lng, radiusMeters },
@@ -60,4 +60,8 @@ export async function sendHi(targetTelegramId: number): Promise<void> {
   await apiClient.post('/message/hi', {
     to: targetTelegramId,
   })
+}
+
+export async function acceptLocationConsent(telegramId: number): Promise<void> {
+  await apiClient.post(`/user/${telegramId}/location-consent`)
 }

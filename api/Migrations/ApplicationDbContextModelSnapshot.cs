@@ -135,10 +135,19 @@ namespace api.Migrations
                         .HasColumnType("text")
                         .HasColumnName("displayname");
 
+                    b.Property<bool>("HasFullProfile")
+                        .HasColumnType("boolean")
+                        .HasColumnName("hasfullprofile");
+
                     b.Property<List<string>>("Interests")
                         .IsRequired()
                         .HasColumnType("text[]")
                         .HasColumnName("interests");
+
+                    b.Property<string>("LanguageCode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("languagecode");
 
                     b.Property<List<string>>("Languages")
                         .IsRequired()
@@ -150,9 +159,16 @@ namespace api.Migrations
                         .HasColumnName("lastactiveat");
 
                     b.Property<Point>("Location")
-                        .IsRequired()
                         .HasColumnType("geometry(Point, 4326)")
                         .HasColumnName("location");
+
+                    b.Property<bool>("LocationConsent")
+                        .HasColumnType("boolean")
+                        .HasColumnName("locationconsent");
+
+                    b.Property<DateTime?>("LocationConsentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("locationconsentat");
 
                     b.Property<List<string>>("LookingFor")
                         .IsRequired()

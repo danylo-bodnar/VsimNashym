@@ -7,6 +7,7 @@ import type { User } from './types/user'
 import Loader from './components/Loader/Loader'
 import { telegramLogin } from './features/auth/api'
 import { getMyProfile, getUserById } from './features/users/api'
+import { LocationConsent } from './components/LocationConsent/LocationConsent'
 
 function App() {
   const { tg, user } = useTelegram()
@@ -49,6 +50,7 @@ function App() {
       try {
         const userData = await getMyProfile()
         setUserData(userData)
+        console.log(userData)
       } catch (error: any) {
         if (error.response?.status === 404) {
           setUserData(null)
@@ -88,18 +90,21 @@ function App() {
       {/* Content section */}
 
       <div className="flex-1 overflow-hidden">
-        {currentTab === 'map' && isAuthenticated && (
-          <UserMap existingUser={userData} />
-        )}
+        {currentTab === 'map' &&
+          isAuthenticated &&
+          (!userData?.locationConsent ? (
+            <LocationConsent telegramId={user.id} setUserData={setUserData} />
+          ) : (
+            <UserMap existingUser={userData} />
+          ))}
+
         {currentTab === 'profile' && (
           <ProfileSettings
             telegramId={user.id}
             existingUser={userData}
             onRegister={(newUser, token?) => {
               setUserData(newUser)
-              if (token) {
-                setJwt(token)
-              }
+              if (token) setJwt(token)
             }}
           />
         )}

@@ -18,6 +18,7 @@ export type User = {
   location: LocationPoint
   createdAt: string
   updatedAt: string
+  locationConsent: boolean
 }
 
 export type NearbyUser = {
