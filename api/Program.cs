@@ -94,6 +94,8 @@ builder.Services.AddSingleton<IFileStorageService>(provider =>
     return new SupabaseFileStorageService(supabaseUrl, supabaseApiKey, bucketName, logger);
 });
 
+builder.Services.AddHostedService<LocationCleanupService>();
+
 // Controllers 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
