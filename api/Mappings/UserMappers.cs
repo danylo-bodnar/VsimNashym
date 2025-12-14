@@ -37,8 +37,12 @@ namespace api.Mappings
                 CreatedAt = DateTime.UtcNow
             };
         }
+
         public static UserDto ToUserDto(User user)
         {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
+
             return new UserDto
             {
                 TelegramId = user.TelegramId,
@@ -49,20 +53,26 @@ namespace api.Mappings
                 LookingFor = user.LookingFor,
                 Languages = user.Languages,
                 CreatedAt = user.CreatedAt,
+
                 Avatar = user.Avatar,
-                ProfilePhotos = user.ProfilePhotos
+
+                ProfilePhotos = user.ProfilePhotos?
                     .Select(p => new ProfilePhotoDto
                     {
                         Url = p.Url,
                         MessageId = p.MessageId,
                         SlotIndex = p.SlotIndex
                     })
-                    .ToList(),
-                Location = new LocationPointDto
-                {
-                    Latitude = user.Location.Y,
-                    Longitude = user.Location.X
-                },
+                    .ToList() ?? new List<ProfilePhotoDto>(),
+
+                Location = user.Location == null
+                    ? null
+                    : new LocationPointDto
+                    {
+                        Latitude = user.Location.Y,
+                        Longitude = user.Location.X
+                    },
+
                 LocationConsent = user.LocationConsent
             };
         }

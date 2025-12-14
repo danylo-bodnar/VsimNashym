@@ -87,10 +87,11 @@ namespace api.Controllers
                 return Unauthorized();
 
             var user = await _userService.GetUserByTelegramIdAsync(telegramId);
-            await _userService.MarkUserActiveAsync(telegramId);
 
             if (user == null)
                 return NotFound(new { message = "User not found" });
+
+            await _userService.MarkUserActiveAsync(telegramId);
 
             return Ok(user);
         }

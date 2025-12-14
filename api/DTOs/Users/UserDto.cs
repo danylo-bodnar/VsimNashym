@@ -17,7 +17,7 @@ namespace api.DTOs.Users
         public List<string> Languages { get; set; } = new();
         public Avatar Avatar { get; set; } = null!;
         public List<ProfilePhotoDto> ProfilePhotos { get; set; } = new();
-        public LocationPointDto Location { get; set; } = null!;
+        public LocationPointDto? Location { get; set; } = new();
         public DateTime CreatedAt { get; set; }
         public bool LocationConsent { get; set; } = false;
     }
