@@ -40,29 +40,31 @@ function App() {
   }, [tg, user])
 
   // Fetch existing user data
+
   useEffect(() => {
+    let isMounted = true
+
     const fetchUserData = async () => {
       if (!user?.id) {
-        setIsLoading(false)
+        if (isMounted) setIsLoading(false)
         return
       }
 
       try {
         const userData = await getMyProfile()
-        setUserData(userData)
-        console.log(userData)
-      } catch (error: any) {
-        if (error.response?.status === 404) {
-          setUserData(null)
-        } else {
-          console.error('Error fetching user data:', error)
-        }
+        if (isMounted) setUserData(userData)
+      } catch (error) {
+        if (isMounted) console.error(error)
       } finally {
-        setIsLoading(false)
+        if (isMounted) setIsLoading(false)
       }
     }
 
     fetchUserData()
+
+    return () => {
+      isMounted = false
+    }
   }, [user?.id])
 
   // Redirect unregistered users to ProfileSettings
