@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { User, LocationPoint, RegisterUserDto } from '@/types/user'
+import type { User, RegisterUserDto } from '@/types/user'
 import { submitUser } from '@/features/users/api'
 import { telegramLogin } from '@/features/auth/api'
 import imageCompression from 'browser-image-compression'
