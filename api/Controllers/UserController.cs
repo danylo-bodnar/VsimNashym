@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using api.DTOs;
 using api.Interfaces;
+using api.Migrations;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -75,6 +76,7 @@ namespace api.Controllers
                 lookingFor = updatedUser.LookingFor,
                 languages = updatedUser.Languages,
                 location = new { latitude = updatedUser.Location.Y, longitude = updatedUser.Location.X },
+                LocationConsent = updatedUser.LocationConsent
             });
         }
 
