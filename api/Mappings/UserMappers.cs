@@ -29,7 +29,6 @@ namespace api.Mappings
                     SlotIndex = p.slotIndex,
 
                 }).ToList() ?? new List<ProfilePhoto>(),
-                Location = new Point(dto.Longitude, dto.Latitude) { SRID = 4326 },
                 Bio = dto.Bio,
                 Interests = dto.Interests ?? new List<string>(),
                 LookingFor = dto.LookingFor ?? new List<string>(),

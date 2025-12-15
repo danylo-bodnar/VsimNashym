@@ -46,40 +46,7 @@ export default function ProfileSettings({
     formState: { errors },
   } = form
 
-  const handleGetLocation = (): Promise<LocationPoint> => {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        return reject(new Error('Geolocation is not supported by your browser'))
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          resolve({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-          })
-        },
-        (err) => {
-          console.error('Geo error', err)
-          resolve({
-            latitude: 58,
-            longitude: 7,
-          })
-        }
-      )
-    })
-  }
-
   const onSubmit = async (data: RegisterUserDto) => {
-    let userLocation: LocationPoint
-
-    try {
-      userLocation = await handleGetLocation()
-    } catch (err) {
-      console.error('Failed to get location', err)
-      return
-    }
-
     // Validation
     if (!isEditMode && !avatar.url) {
       alert('Будь ласка, додайте аватар')
@@ -100,7 +67,7 @@ export default function ProfileSettings({
       if (data.bio) formData.append('bio', data.bio)
 
       selectedInterests.forEach((interest) =>
-        formData.append('interests', interest)
+        formData.append('interests', interest),
       )
       selectedLookingFor.forEach((item) => formData.append('lookingFor', item))
       selectedLanguages.forEach((lang) => formData.append('languages', lang))
@@ -114,7 +81,7 @@ export default function ProfileSettings({
         }
         const compressedAvatar = await imageCompression(
           avatar.file,
-          avatarCompressionOptions
+          avatarCompressionOptions,
         )
         formData.append('avatar', compressedAvatar)
       }
@@ -131,12 +98,12 @@ export default function ProfileSettings({
           if (photo.file) {
             const compressed = await imageCompression(
               photo.file,
-              compressionOptions
+              compressionOptions,
             )
             return { file: compressed, slot: index }
           }
           return null
-        })
+        }),
       )
 
       // Append new photos and their slot indices to FormData
@@ -154,15 +121,12 @@ export default function ProfileSettings({
         }
       })
 
-      formData.append('latitude', userLocation.latitude.toString())
-      formData.append('longitude', userLocation.longitude.toString())
-
       const newUser = await submitUser({
         formData,
         isEditMode,
         telegramId: existingUser?.telegramId,
       })
-
+      debugger
       if (isEditMode) {
         alert('Профіль успішно оновлено!')
         setInitialPhotos([...photos])
@@ -307,10 +271,10 @@ export default function ProfileSettings({
             {isSubmitting
               ? 'Зберігаємо...'
               : isEditMode
-              ? hasChanges() || avatar.file
-                ? 'Оновити профіль'
-                : 'Немає змін'
-              : 'Створити профіль'}
+                ? hasChanges() || avatar.file
+                  ? 'Оновити профіль'
+                  : 'Немає змін'
+                : 'Створити профіль'}
           </button>
         </div>
       </div>
