@@ -15,6 +15,7 @@ function App() {
   const [userData, setUserData] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [jwt, setJwt] = useState<string | null>(null)
+  const [authReady, setAuthReady] = useState(false)
 
   const isAuthenticated = !!userData && !!jwt
 
@@ -24,6 +25,7 @@ function App() {
   }, [tg])
 
   // Telegram login / auth
+
   useEffect(() => {
     const initAuth = async () => {
       if (!tg || !user) return
@@ -31,7 +33,8 @@ function App() {
       try {
         const token = await telegramLogin(user.id)
         setJwt(token)
-      } catch (err: any) {
+        setAuthReady(true)
+      } catch (err) {
         console.error('Login failed', err)
       }
     }
@@ -45,10 +48,7 @@ function App() {
     let isMounted = true
 
     const fetchUserData = async () => {
-      if (!user?.id) {
-        if (isMounted) setIsLoading(false)
-        return
-      }
+      if (!user?.id || !authReady) return
 
       try {
         const userData = await getMyProfile()
@@ -65,7 +65,7 @@ function App() {
     return () => {
       isMounted = false
     }
-  }, [user?.id])
+  }, [user?.id, authReady])
 
   // Redirect unregistered users to ProfileSettings
   useEffect(() => {
@@ -74,7 +74,7 @@ function App() {
     }
   }, [isLoading, userData])
 
-  if (isLoading) return <Loader />
+  if (isLoading || !authReady) return <Loader />
 
   if (!user?.id) {
     return (
