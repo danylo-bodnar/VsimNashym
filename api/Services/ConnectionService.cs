@@ -1,7 +1,9 @@
 using api.DTOs.Connections;
+using api.Enums;
 using api.Interfaces;
 using api.Mappings;
 using api.Models;
+using api.Results;
 
 namespace api.Services
 {
@@ -14,32 +16,49 @@ namespace api.Services
             _connectionRepository = repository;
         }
 
-        public async Task<Connection> CreateConnectionAsync(CreateConnectionDto dto)
+        public async Task<ConnectionCreateResult> CreateConnectionAsync(CreateConnectionDto dto)
         {
-            bool exists = await _connectionRepository.ExistsAsync(dto.FromTelegramId, dto.ToTelegramId);
+            var existing = await _connectionRepository.GetAsync(
+                dto.FromTelegramId,
+                dto.ToTelegramId);
 
-            if (exists)
+            if (existing != null)
             {
-                throw new ApplicationException("Connection already exists");
+                return new ConnectionCreateResult
+                {
+                    Result = ConnectionResult.AlreadyExists,
+                    Connection = existing
+                };
             }
 
-            var connectionModel = dto.ToEntity();
-            var connection = await _connectionRepository.CreateAsync(connectionModel);
+            if (await _connectionRepository.SentRecentlyAsync(
+                dto.FromTelegramId,
+                dto.ToTelegramId,
+                TimeSpan.FromSeconds(30)))
+            {
+                return new ConnectionCreateResult
+                {
+                    Result = ConnectionResult.Cooldown
+                };
+            }
 
-            return connection;
+            var connection = await _connectionRepository.CreateAsync(dto.ToEntity());
+
+            return new ConnectionCreateResult
+            {
+                Result = ConnectionResult.Created,
+                Connection = connection
+            };
         }
 
-        async public Task<Connection> AcceptConnectionAsync(int connectionId)
+        public async Task<Connection> AcceptConnectionAsync(int connectionId)
         {
-            var connection = await _connectionRepository.AcceptAsync(connectionId);
-
-            return connection;
+            return await _connectionRepository.AcceptAsync(connectionId);
         }
 
         public async Task<bool> ConnectionExistsAsync(long fromTelegramId, long toTelegramId)
         {
             return await _connectionRepository.ExistsAsync(fromTelegramId, toTelegramId);
         }
-
     }
 }

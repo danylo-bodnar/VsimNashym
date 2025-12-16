@@ -1,5 +1,6 @@
 
 using api.DTOs.Connections;
+using api.Enums;
 using api.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,11 +20,15 @@ namespace api.Controllers
         [HttpPost("connect")]
         public async Task<IActionResult> Connect([FromBody] CreateConnectionDto dto)
         {
-            if (await _connectionService.ConnectionExistsAsync(dto.FromTelegramId, dto.ToTelegramId))
-                return BadRequest("Connection already exists.");
+            var result = await _connectionService.CreateConnectionAsync(dto);
 
-            var created = await _connectionService.CreateConnectionAsync(dto);
-            return Ok(created);
+            return result.Result switch
+            {
+                ConnectionResult.Created => Ok(),
+                ConnectionResult.AlreadyExists => Ok("Already connected"),
+                ConnectionResult.Cooldown => StatusCode(429, "Please wait before sending another request."),
+                _ => BadRequest()
+            };
         }
     }
 }

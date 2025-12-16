@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using api.DTOs.Connections;
+using api.Enums;
 using api.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -22,33 +23,38 @@ namespace api.Services
             _connectionService = connectionService;
         }
 
-        async public Task SendHiAsync(long fromTelegramId, long toTelegramId)
+        public async Task SendHiAsync(long fromTelegramId, long toTelegramId)
         {
+            var result = await _connectionService.CreateConnectionAsync(
+                new CreateConnectionDto
+                {
+                    FromTelegramId = fromTelegramId,
+                    ToTelegramId = toTelegramId
+                });
 
-            // TODO: add spam prevention
+            if (result.Result == ConnectionResult.Cooldown)
+                throw new InvalidOperationException("Cooldown active");
 
-            var connection = await _connectionService.CreateConnectionAsync(new CreateConnectionDto
-            {
-                FromTelegramId = fromTelegramId,
-                ToTelegramId = toTelegramId
-            });
+            if (result.Connection == null)
+                throw new InvalidOperationException("Connection missing");
 
-            var fromUser = await _userService.GetUserByTelegramIdAsync(fromTelegramId);
-
-            if (fromUser == null)
-            {
-                throw new InvalidOperationException($"User with TelegramId {fromTelegramId} does not exist.");
-            }
+            var fromUser = await _userService.GetUserByTelegramIdAsync(fromTelegramId)
+                ?? throw new InvalidOperationException($"User {fromTelegramId} not found");
 
             var keyboard = new InlineKeyboardMarkup(new[]
             {
-            new[]
-            {
-            InlineKeyboardButton.WithCallbackData("✅ Accept", $"accept:{connection.Id}")
-            }
-            });
+        new[]
+        {
+            InlineKeyboardButton.WithCallbackData(
+                "✅ Accept",
+                $"accept:{result.Connection.Id}")
+        }
+    });
 
-            await _botMessenger.SendMessageSafeAsync(toTelegramId, $"{fromUser!.DisplayName} says hi 👋", keyboard);
+            await _botMessenger.SendMessageSafeAsync(
+                toTelegramId,
+                $"{fromUser.DisplayName} says hi 👋",
+                keyboard);
         }
 
         // async public Task SendLocationConsent(long chatId, long telegramId, string langCode)

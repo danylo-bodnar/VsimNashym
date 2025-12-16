@@ -44,5 +44,24 @@ namespace api.Repositories
         {
             return await _db.Connections.AnyAsync(u => u.FromTelegramId == fromTelegramId && u.ToTelegramId == toTelegramId);
         }
+
+        public async Task<bool> SentRecentlyAsync(long fromId, long toId, TimeSpan cooldown)
+        {
+            return await _db.Connections
+                .AnyAsync(c =>
+                    c.FromTelegramId == fromId &&
+                    c.ToTelegramId == toId &&
+                    c.CreatedAt > DateTime.UtcNow.Subtract(cooldown)
+                );
+        }
+
+        public async Task<Connection?> GetAsync(long fromTelegramId, long toTelegramId)
+        {
+            return await _db.Connections
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c =>
+                    c.FromTelegramId == fromTelegramId &&
+                    c.ToTelegramId == toTelegramId);
+        }
     }
 }

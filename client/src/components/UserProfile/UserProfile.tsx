@@ -1,4 +1,6 @@
 import type { User } from '@/types/user'
+import { AxiosError } from 'axios'
+import { useState } from 'react'
 import { FaTimes } from 'react-icons/fa'
 
 type Props = {
@@ -8,6 +10,26 @@ type Props = {
 }
 
 export default function UserProfile({ user, onClose, onSayHi }: Props) {
+  const [isSendingHi, setIsSendingHi] = useState(false)
+  const [hiSent, setHiSent] = useState(false)
+
+  const handleSayHi = async () => {
+    try {
+      setIsSendingHi(true)
+      await onSayHi(user.telegramId)
+      setHiSent(true)
+    } catch (e: unknown) {
+      const err = e as AxiosError
+      if (err.response?.status === 429) {
+        alert('Please wait a bit before sending another Hi 👋')
+      } else {
+        console.error('Failed to send hi', err)
+      }
+    } finally {
+      setIsSendingHi(false)
+    }
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 z-[1000] flex items-end md:items-center justify-center">
       <div className="bg-white w-full md:w-96 md:rounded-2xl rounded-t-2xl max-h-[97vh] overflow-y-auto">
@@ -120,10 +142,20 @@ export default function UserProfile({ user, onClose, onSayHi }: Props) {
 
           {/* Say Hi button */}
           <button
-            onClick={() => onSayHi(user.telegramId)}
-            className="w-full bg-black hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+            disabled={isSendingHi || hiSent}
+            onClick={handleSayHi}
+            className={`w-full py-3 px-6 rounded-lg font-bold transition
+      ${
+        isSendingHi || hiSent
+          ? 'bg-gray-400 cursor-not-allowed'
+          : 'bg-black hover:bg-gray-800 text-white'
+      }`}
           >
-            Say Hi 👋
+            {isSendingHi
+              ? 'Відправляю…'
+              : hiSent
+                ? '✓ Привіт надіслано'
+                : 'Привітатись 👋'}
           </button>
         </div>
       </div>

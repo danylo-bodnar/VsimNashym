@@ -1,5 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace api.Models
 {
+
+    [Index(nameof(FromTelegramId), nameof(ToTelegramId), IsUnique = true)]
     public class Connection
     {
         public int Id { get; set; }
