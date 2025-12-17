@@ -1,4 +1,5 @@
 
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace api.Interfaces
@@ -13,5 +14,8 @@ namespace api.Interfaces
            ReplyMarkup? replyMarkup = null,
            CancellationToken cancellationToken = default);
         Task EditMessageReplyMarkupSafeAsync(long chatId, int messageId, InlineKeyboardMarkup? keyboard = null, string? newText = null);
+        Task SendAlbumSafeAsync(
+            long chatId,
+            IEnumerable<IAlbumInputMedia> media);
     }
 }

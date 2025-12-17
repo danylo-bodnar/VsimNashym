@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 using api.DTOs.Connections;
 using api.Enums;
 using api.Interfaces;
+using api.Utils;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+
 
 namespace api.Services
 {
@@ -41,20 +44,59 @@ namespace api.Services
             var fromUser = await _userService.GetUserByTelegramIdAsync(fromTelegramId)
                 ?? throw new InvalidOperationException($"User {fromTelegramId} not found");
 
+            var toUser = await _userService.GetUserByTelegramIdAsync(toTelegramId)
+                  ?? throw new InvalidOperationException($"User {toTelegramId} not found");
+
+            double? distanceKm = null;
+
+            if (fromUser.LocationConsent &&
+                toUser.LocationConsent &&
+                fromUser.Location != null &&
+                toUser.Location != null)
+            {
+                distanceKm = GeoUtils.CalculateDistanceKm(
+                    fromUser.Location,
+                    toUser.Location
+                );
+            }
+
+            var photos = fromUser.ProfilePhotos
+                    .OrderBy(p => p.SlotIndex)
+                    .Take(3)
+                    .ToList();
+
+            if (photos.Any())
+            {
+                var media = photos.Select(p =>
+                new InputMediaPhoto(p.Url)
+                ).ToList<IAlbumInputMedia>();
+
+                await _botMessenger.SendAlbumSafeAsync(
+                    toTelegramId,
+                    media
+                );
+            }
+
             var keyboard = new InlineKeyboardMarkup(new[]
             {
-        new[]
-        {
-            InlineKeyboardButton.WithCallbackData(
-                "✅ Accept",
-                $"accept:{result.Connection.Id}")
-        }
-    });
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData(
+                    "✅ Accept",
+                    $"accept:{result.Connection.Id}")
+            }
+            });
+
+            var messageText = TelegramMessageBuilder.BuildUserIntro(
+                  fromUser,
+                  distanceKm
+              );
 
             await _botMessenger.SendMessageSafeAsync(
                 toTelegramId,
-                $"{fromUser.DisplayName} says hi 👋",
-                keyboard);
+                messageText,
+                keyboard
+            );
         }
 
         // async public Task SendLocationConsent(long chatId, long telegramId, string langCode)

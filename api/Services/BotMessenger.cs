@@ -94,5 +94,20 @@ namespace api.Services
                 _logger.LogError(ex, "Failed to edit message {MessageId} in chat {ChatId}", messageId, chatId);
             }
         }
+
+        public async Task SendAlbumSafeAsync(
+            long chatId,
+            IEnumerable<IAlbumInputMedia> media)
+        {
+            try
+            {
+                await _botClient.SendMediaGroup(chatId, media);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send album to chat {ChatId}", chatId);
+            }
+        }
+
     }
 }
