@@ -155,6 +155,22 @@ builder.Services.AddCors(options =>
 // App
 var app = builder.Build();
 
+// Auto-run migrations here
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+        throw;
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
