@@ -3,7 +3,7 @@ name: Build and Push Docker
 on:
   push:
     branches:
-      - main # runs when you push to main
+      - main
 
 jobs:
   docker:
@@ -27,4 +27,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: danylobodnar/vsmnshym-p:latest # change "latest" to a tag if needed
+          tags: |
+            danylobodnar/vsmnshym-p:latest
+            danylobodnar/vsmnshym-p:${{ github.sha }}
+          file: ./Dockerfile
