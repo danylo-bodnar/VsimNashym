@@ -25,9 +25,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./api
+          file: ./api/Dockerfile
           push: true
           tags: |
             danylobodnar/vsmnshym-p:latest
             danylobodnar/vsmnshym-p:${{ github.sha }}
-          file: ./Dockerfile
