@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
+    [ApiController]
     [Route("[controller]")]
-    public class ConnectionController : Controller
+    public class ConnectionController : ControllerBase
     {
         private readonly IConnectionService _connectionService;
 

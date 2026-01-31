@@ -8,7 +8,7 @@ namespace api.Interfaces
     {
         Task<User> CreateAsync(User userModel);
         Task SaveChangesAsync();
-        Task<List<NearbyUserDto>> GetNearbyAsync(Point currentLocation, double radiusMeters, Guid currentUserId);
+        Task<List<NearbyUserDto>> GetNearbyAsync(Point currentLocation, double radiusMeters, long currentUserId);
         Task<User?> GetByTelegramIdAsync(long telegramId);
         Task<bool> Exists(long telegramId);
         Task<List<User>> GetInactiveUsersOlderThanAsync(DateTime cutoff, CancellationToken token);

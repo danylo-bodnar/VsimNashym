@@ -9,8 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
+    [ApiController]
     [Route("[controller]")]
-    public class UserController : Controller
+    public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
         private readonly IValidator<RegisterUserDto> _registerValidator;
@@ -28,8 +29,12 @@ namespace api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromForm] RegisterUserDto dto)
         {
-            await _registerValidator.ValidateAsync(dto);
+            var validationResult = await _registerValidator.ValidateAsync(dto);
 
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
             var user = await _userService.RegisterUserAsync(dto);
 
             if (user == null)
@@ -53,11 +58,16 @@ namespace api.Controllers
             });
         }
 
-        [Authorize]
+        [Authorize(Policy = "SameTelegramUser")]
         [HttpPut("{telegramId:long}")]
         public async Task<IActionResult> Update(long telegramId, [FromForm] UpdateUserDto dto)
         {
-            await _updateValidator.ValidateAsync(dto);
+            var validationResult = await _updateValidator.ValidateAsync(dto);
+
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
 
             var updatedUser = await _userService.UpdateUserAsync(telegramId, dto);
 
@@ -75,8 +85,7 @@ namespace api.Controllers
                 interests = updatedUser.Interests,
                 lookingFor = updatedUser.LookingFor,
                 languages = updatedUser.Languages,
-                location = new { latitude = updatedUser.Location.Y, longitude = updatedUser.Location.X },
-                LocationConsent = updatedUser.LocationConsent
+                LocationConsent = updatedUser.LocationConsent,
             });
         }
 
@@ -110,6 +119,7 @@ namespace api.Controllers
             return Ok(user);
         }
 
+        [Authorize(Policy = "SameTelegramUser")]
         [HttpPut("{telegramId}/location")]
         public async Task<IActionResult> UpdateUserLocation(
                     long telegramId,
@@ -124,15 +134,15 @@ namespace api.Controllers
         [HttpGet("nearby")]
         public async Task<IActionResult> GetNearbyUsers(double lat, double lng, double radiusMeters)
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userIdStr, out var currentUserId))
+            var telegramIdStr = User.FindFirstValue("telegram_id");
+            if (!long.TryParse(telegramIdStr, out var telegramId))
                 return Unauthorized();
 
-            var nearbyUsers = await _userService.FindNearbyUsersAsync(currentUserId, lat, lng, radiusMeters);
+            var nearbyUsers = await _userService.FindNearbyUsersAsync(telegramId, lat, lng, radiusMeters);
             return Ok(nearbyUsers);
         }
 
-        [Authorize]
+        [Authorize(Policy = "SameTelegramUser")]
         [HttpPost("{telegramId:long}/location-consent")]
         public async Task<IActionResult> AcceptLocationConsent(long telegramId)
         {

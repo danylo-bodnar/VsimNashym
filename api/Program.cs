@@ -10,7 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using api.Options;
 using FluentValidation;
 using api.Exceptions;
-using Supabase;
+using System.Security.Claims;
 
 Env.Load();
 
@@ -96,6 +96,32 @@ builder.Services.AddSingleton<IFileStorageService>(provider =>
 
 builder.Services.AddHostedService<LocationCleanupService>();
 
+
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("SameTelegramUser", policy =>
+        policy.RequireAssertion(ctx =>
+        {
+            var httpContext = ctx.Resource as HttpContext;
+
+            if (httpContext == null)
+                return false;
+
+            var routeTelegramId =
+                httpContext.Request.RouteValues["telegramId"]?.ToString();
+
+            var claimTelegramId =
+                ctx.User.FindFirstValue("telegram_id");
+
+            return routeTelegramId == claimTelegramId;
+        }));
+});
+
+
+
+
+
 // Controllers 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -156,20 +182,24 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Auto-run migrations here
-using (var scope = app.Services.CreateScope())
-{
-    try
-    {
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        db.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
-        throw;
-    }
-}
+// using (var scope = app.Services.CreateScope())
+// {
+//     try
+//     {
+//         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+//         if (db.Database.IsRelational())
+//         {
+//             db.Database.Migrate();
+//         }
+//     }
+//     catch (Exception ex)
+//     {
+//         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+//         logger.LogError(ex, "An error occurred while migrating the database.");
+//         throw;
+//     }
+// }
 
 if (app.Environment.IsDevelopment())
 {
@@ -189,3 +219,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

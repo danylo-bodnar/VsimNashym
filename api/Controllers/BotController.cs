@@ -10,8 +10,9 @@ using Telegram.Bot.Types;
 
 namespace api.Controllers
 {
+    [ApiController]
     [Route("bot")]
-    public class BotController : Controller
+    public class BotController : ControllerBase
     {
         private readonly BotHandler _botHandler;
         public BotController(BotHandler botHandler)

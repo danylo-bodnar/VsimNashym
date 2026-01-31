@@ -173,7 +173,7 @@ namespace api.Services
             return user;
         }
 
-        public async Task<IEnumerable<NearbyUserDto>> FindNearbyUsersAsync(Guid currentUserId, double lat, double lng, double radiusMeters)
+        public async Task<IEnumerable<NearbyUserDto>> FindNearbyUsersAsync(long currentUserId, double lat, double lng, double radiusMeters)
         {
             var currentLocation = new Point(lng, lat) { SRID = 4326 };
             return await _userRepository.GetNearbyAsync(currentLocation, radiusMeters, currentUserId);

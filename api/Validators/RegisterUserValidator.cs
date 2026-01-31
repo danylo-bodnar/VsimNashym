@@ -1,5 +1,5 @@
-using FluentValidation;
 using api.DTOs;
+using FluentValidation;
 
 public class RegisterUserValidator : AbstractValidator<RegisterUserDto>
 {
@@ -10,14 +10,14 @@ public class RegisterUserValidator : AbstractValidator<RegisterUserDto>
             .MaximumLength(15).WithMessage("Display name must be at most 15 characters.");
 
         RuleFor(x => x.Age)
-            .InclusiveBetween(13, 120).WithMessage("Age must be between 13 and 120.");
+            .InclusiveBetween(16, 120).WithMessage("Age must be between 13 and 120.");
 
         RuleFor(x => x.Bio)
             .MaximumLength(200).WithMessage("Bio must be at most 200 characters.")
             .When(x => !string.IsNullOrEmpty(x.Bio));
 
-        RuleFor(x => x.ProfilePhotos)
-            .NotNull().WithMessage("At least one profile photo is required.")
-            .Must(p => p != null && p.Length > 0).WithMessage("At least one profile photo is required.");
+        // Avatar validation
+        RuleFor(x => x.Avatar)
+            .NotNull().WithMessage("Avatar is required.");
     }
 }

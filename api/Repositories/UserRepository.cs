@@ -25,7 +25,7 @@ namespace api.Repositories
             return userModel;
         }
 
-        public async Task<List<NearbyUserDto>> GetNearbyAsync(Point currentLocation, double radiusMeters, Guid currentUserId)
+        public async Task<List<NearbyUserDto>> GetNearbyAsync(Point currentLocation, double radiusMeters, long currentUserId)
         {
             var sql = @"
             SELECT 
@@ -130,6 +130,11 @@ namespace api.Repositories
         {
             var user = await _db.Users
                 .FirstOrDefaultAsync(u => u.TelegramId == telegramId);
+
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User with TelegramId {telegramId} not found.");
+            }
 
             user.LocationConsent = true;
             user.LocationConsentAt = DateTime.UtcNow;
