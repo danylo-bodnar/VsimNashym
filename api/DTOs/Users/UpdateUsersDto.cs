@@ -5,12 +5,10 @@ public class UpdateUserDto
     public int? Age { get; set; }
     public IFormFile? Avatar { get; set; }
     public IFormFile[]? ProfilePhotos { get; set; }
-    public List<int>? ProfilePhotoSlotIndices { get; set; } // <-- NEW
+    public List<int>? ProfilePhotoSlotIndices { get; set; }
     public List<string>? ExistingPhotoMessageIds { get; set; }
     public string? Bio { get; set; }
-    public List<string>? Interests { get; set; }
-    public List<string>? LookingFor { get; set; }
-    public List<string>? Languages { get; set; }
-    public double? Latitude { get; set; }
-    public double? Longitude { get; set; }
+    public List<string> Interests { get; set; } = new();
+    public List<string> LookingFor { get; set; } = new();
+    public List<string> Languages { get; set; } = new();
 }

@@ -23,6 +23,9 @@ namespace api.Services
         {
             var user = await _userRepository.GetByTelegramIdAsync(dto.TelegramId);
 
+            if (dto.Avatar == null)
+                throw new ArgumentNullException(nameof(dto.Avatar), "Avatar is required.");
+
             var avatarUpload = await _fileStorageService.UploadProfilePhotoAsync(dto.Avatar);
 
             var uploadedPhotos = new List<(string url, string messageId, int slotIndex)>();
@@ -31,8 +34,9 @@ namespace api.Services
                 for (int i = 0; i < dto.ProfilePhotos.Length; i++)
                 {
                     var file = dto.ProfilePhotos[i];
-                    var slotIndex = dto.ProfilePhotoSlotIndices[i];
-
+                    var slotIndex = dto.ProfilePhotoSlotIndices != null && i < dto.ProfilePhotoSlotIndices.Count
+                                ? dto.ProfilePhotoSlotIndices[i]
+                                : i;
                     var uploaded = await _fileStorageService.UploadProfilePhotoAsync(file);
                     uploadedPhotos.Add((uploaded.url, uploaded.messageId, slotIndex));
                 }
@@ -100,11 +104,8 @@ namespace api.Services
             if (dto.Languages != null)
                 user.Languages = dto.Languages;
 
-            if (dto.Latitude.HasValue && dto.Longitude.HasValue)
-                user.Location = new Point(dto.Longitude.Value, dto.Latitude.Value) { SRID = 4326 };
-
             // --- PHOTOS ---
-            var finalPhotos = new ProfilePhoto[3];
+            var finalPhotos = new ProfilePhoto?[3];
 
             foreach (var photo in user.ProfilePhotos)
             {
@@ -135,8 +136,9 @@ namespace api.Services
 
                     var uploaded = await _fileStorageService.UploadProfilePhotoAsync(file);
 
-                    if (finalPhotos[slot] != null)
-                        await _fileStorageService.DeleteProfilePhotoAsync(finalPhotos[slot].MessageId);
+                    var existing = finalPhotos[slot];
+                    if (existing != null)
+                        await _fileStorageService.DeleteProfilePhotoAsync(existing.MessageId);
 
                     finalPhotos[slot] = new ProfilePhoto
                     {

@@ -10,14 +10,22 @@ public class RegisterUserValidator : AbstractValidator<RegisterUserDto>
             .MaximumLength(15).WithMessage("Display name must be at most 15 characters.");
 
         RuleFor(x => x.Age)
-            .InclusiveBetween(16, 120).WithMessage("Age must be between 13 and 120.");
+            .InclusiveBetween(16, 120).WithMessage("Age must be between 16 and 120.");
 
         RuleFor(x => x.Bio)
             .MaximumLength(200).WithMessage("Bio must be at most 200 characters.")
             .When(x => !string.IsNullOrEmpty(x.Bio));
 
-        // Avatar validation
         RuleFor(x => x.Avatar)
             .NotNull().WithMessage("Avatar is required.");
+
+        RuleFor(x => x.Avatar)
+            .Must(a => a!.ContentType.StartsWith("image/")).WithMessage("Avatar must be an image.")
+            .When(x => x.Avatar != null);
+
+        RuleForEach(x => x.ProfilePhotos)
+            .Must(p => p.Length > 0).WithMessage("Profile photo cannot be empty.")
+            .Must(p => p.ContentType.StartsWith("image/")).WithMessage("Profile photo must be an image.")
+            .When(x => x.ProfilePhotos != null && x.ProfilePhotos.Length > 0);
     }
 }
