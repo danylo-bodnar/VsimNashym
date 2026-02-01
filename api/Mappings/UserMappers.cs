@@ -64,14 +64,6 @@ namespace api.Mappings
                     })
                     .ToList() ?? new List<ProfilePhotoDto>(),
 
-                Location = user.Location == null
-                    ? null
-                    : new LocationPointDto
-                    {
-                        Latitude = user.Location.Y,
-                        Longitude = user.Location.X
-                    },
-
                 LocationConsent = user.LocationConsent
             };
         }
@@ -84,11 +76,6 @@ namespace api.Mappings
             if (dto.Interests != null) user.Interests = dto.Interests;
             if (dto.LookingFor != null) user.LookingFor = dto.LookingFor;
             if (dto.Languages != null) user.Languages = dto.Languages;
-
-            if (dto.Latitude.HasValue && dto.Longitude.HasValue)
-            {
-                user.Location = new Point(dto.Longitude.Value, dto.Latitude.Value) { SRID = 4326 };
-            }
 
             // Filter existing photos
             if (dto.ExistingPhotoMessageIds != null && dto.ExistingPhotoMessageIds.Any())
