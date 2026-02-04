@@ -7,7 +7,7 @@ public class RegisterUserValidator : AbstractValidator<RegisterUserDto>
     {
         RuleFor(x => x.DisplayName)
             .NotEmpty().WithMessage("Display name is required.")
-            .MaximumLength(15).WithMessage("Display name must be at most 15 characters.");
+            .MaximumLength(30).WithMessage("Display name must be at most 30 characters.");
 
         RuleFor(x => x.Age)
             .InclusiveBetween(16, 120).WithMessage("Age must be between 16 and 120.");

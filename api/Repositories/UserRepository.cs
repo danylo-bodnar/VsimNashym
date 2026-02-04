@@ -38,7 +38,7 @@ namespace api.Repositories
             FROM users u
             LEFT JOIN avatar a 
                 ON a.userid = u.id
-            WHERE u.id <> @currentUserId
+            WHERE u.telegramid <> @currentUserId
             AND ST_DWithin(
                 u.location::geography,
                 ST_SetSRID(ST_MakePoint(@lng, @lat), 4326)::geography,

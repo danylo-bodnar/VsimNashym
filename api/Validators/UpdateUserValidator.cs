@@ -5,8 +5,8 @@ public class UpdateUserValidator : AbstractValidator<UpdateUserDto>
     public UpdateUserValidator()
     {
         RuleFor(x => x.DisplayName)
-            .MaximumLength(15)
-            .WithMessage("Display name must be at most 15 characters.")
+            .MaximumLength(30)
+            .WithMessage("Display name must be at most 30 characters.")
             .When(x => !string.IsNullOrWhiteSpace(x.DisplayName));
 
         RuleFor(x => x.Age)

@@ -52,7 +52,13 @@ namespace api.Mappings
                 LookingFor = user.LookingFor,
                 Languages = user.Languages,
                 CreatedAt = user.CreatedAt,
-
+                Location = user.Location != null
+                ? new LocationPointDto
+                {
+                    Latitude = user.Location.Y,   // Y is latitude
+                    Longitude = user.Location.X   // X is longitude
+                }
+            : null,
                 Avatar = user.Avatar,
 
                 ProfilePhotos = user.ProfilePhotos?
