@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using api.DTOs;
 using api.Interfaces;
-using api.Migrations;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

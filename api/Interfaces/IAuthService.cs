@@ -7,6 +7,6 @@ namespace api.Interfaces
 {
     public interface IAuthService
     {
-        Task<string?> LoginWithTelegramAsync(long telegramId);
+        Task<string> LoginWithTelegramAsync(long telegramId);
     }
 }

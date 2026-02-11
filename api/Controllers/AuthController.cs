@@ -21,9 +21,10 @@ namespace api.Controllers
             var token = await _authService.LoginWithTelegramAsync(request.TelegramId);
 
             if (token == null)
-                return Unauthorized("User not registered");
+                return StatusCode(500, "Token generation failed");
 
             return Ok(new { token });
         }
+
     }
 }

@@ -1,7 +1,6 @@
 using api.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
 
 namespace api.Services
 {
@@ -18,26 +17,27 @@ namespace api.Services
             _tokenService = tokenService;
         }
 
-        public async Task<string?> LoginWithTelegramAsync(long telegramId)
+        public async Task<string> LoginWithTelegramAsync(long telegramId)
         {
             var user = await _userRepository.GetByTelegramIdAsync(telegramId);
-            if (user == null)
+
+            var claims = new List<Claim>
             {
-                _logger.LogWarning("Telegram login failed: {TelegramId} not registered", telegramId);
-                return null;
+                new Claim("telegram_id", telegramId.ToString()),
+            };
+
+            if (user != null)
+            {
+                claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()));
+                claims.Add(new Claim(JwtRegisteredClaimNames.UniqueName, user.DisplayName));
+                claims.Add(new Claim("is_registered", "true"));
+            }
+            else
+            {
+                claims.Add(new Claim("is_registered", "false"));
             }
 
-            var claims = new[]
-            {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.UniqueName, user.DisplayName),
-            new Claim("telegram_id", user.TelegramId.ToString())
-           };
-
-            var token = _tokenService.GenerateToken(claims);
-            _logger.LogInformation("Telegram login successful: {TelegramId}", telegramId);
-
-            return token;
+            return _tokenService.GenerateToken(claims);
         }
     }
 }
