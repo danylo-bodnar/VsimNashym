@@ -167,14 +167,21 @@ builder.Services.AddAuthentication(options =>
 });
 
 // Cors
+var frontendUrls = new[]
+{
+    "https://vsim-nashym-qa8ybhrt0-danyios-projects.vercel.app",
+    "http://localhost:5173"
+};
+
+
 builder.Services.AddCors(options =>
 {
-    // TODO: set it up before deployment.
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(frontendUrls)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -207,7 +214,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 
 app.UseExceptionHandler();
 
