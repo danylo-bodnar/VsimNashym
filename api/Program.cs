@@ -169,6 +169,7 @@ builder.Services.AddAuthentication(options =>
 // Cors
 var frontendUrls = new[]
 {
+    "https://vsim-nashym.vercel.app",
     "https://vsim-nashym-qa8ybhrt0-danyios-projects.vercel.app",
     "http://localhost:5173"
 };
