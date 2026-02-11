@@ -182,24 +182,24 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Auto-run migrations here
-// using (var scope = app.Services.CreateScope())
-// {
-//     try
-//     {
-//         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-//         if (db.Database.IsRelational())
-//         {
-//             db.Database.Migrate();
-//         }
-//     }
-//     catch (Exception ex)
-//     {
-//         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-//         logger.LogError(ex, "An error occurred while migrating the database.");
-//         throw;
-//     }
-// }
+        if (db.Database.IsRelational())
+        {
+            db.Database.Migrate();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+        throw;
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
