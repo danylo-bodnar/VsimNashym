@@ -181,8 +181,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(frontendUrls)
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowAnyMethod();
     });
 });
 
