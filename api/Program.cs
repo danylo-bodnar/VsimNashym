@@ -166,20 +166,12 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Cors
-var frontendUrls = new[]
-{
-    "https://vsim-nashym.vercel.app",
-    "https://vsim-nashym-qa8ybhrt0-danyios-projects.vercel.app",
-    "http://localhost:5173"
-};
-
-
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(frontendUrls)
+        policy.WithOrigins("https://vsim-nashym.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
