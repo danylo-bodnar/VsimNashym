@@ -1,10 +1,6 @@
 import apiClient from '@/utils/api-client'
 import { jwtDecode } from 'jwt-decode'
 
-interface TelegramLoginRequest {
-  TelegramId: number
-}
-
 interface TelegramLoginResponse {
   token: string
 }
@@ -13,11 +9,11 @@ interface JwtPayload {
   exp: number
 }
 
-export async function telegramLogin(telegramId: number): Promise<string> {
+export async function telegramLogin(initData: string): Promise<string> {
   try {
     const response = await apiClient.post<TelegramLoginResponse>(
       '/Auth/telegram-login',
-      { TelegramId: telegramId } as TelegramLoginRequest,
+      { initData },
     )
 
     const token = response.data.token
@@ -27,9 +23,8 @@ export async function telegramLogin(telegramId: number): Promise<string> {
     return token
   } catch (error: any) {
     if (error.response?.status === 401) {
-      const errorMessage = error.response.data || 'User not registered'
-      console.error('Telegram login failed:', errorMessage)
-      throw new Error(`Registration required: ${errorMessage}`)
+      console.error('Telegram login failed:', error.response.data)
+      throw new Error('Telegram authentication failed.')
     }
 
     console.error('Telegram login error:', error)

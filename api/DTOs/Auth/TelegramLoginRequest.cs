@@ -7,6 +7,6 @@ namespace api.DTOs.Auth
 {
     public class TelegramLoginRequest
     {
-        public long TelegramId { get; set; }
+        public string InitData { get; set; } = string.Empty;
     }
 }

@@ -18,7 +18,7 @@ namespace api.Controllers
         [HttpPost("telegram-login")]
         public async Task<IActionResult> TelegramLogin([FromBody] TelegramLoginRequest request)
         {
-            var token = await _authService.LoginWithTelegramAsync(request.TelegramId);
+            var token = await _authService.LoginWithTelegramAsync(request.InitData);
 
             if (token == null)
                 return StatusCode(500, "Token generation failed");

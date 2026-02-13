@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { User, RegisterUserDto } from '@/types/user'
 import { submitUser } from '@/features/users/api'
-import { telegramLogin } from '@/features/auth/api'
 import imageCompression from 'browser-image-compression'
 import { useProfileForm } from './profile/hooks/useProfileForm'
 import AvatarUploader from './profile/AvatarUploader'
@@ -12,7 +11,7 @@ import { INTERESTS, LOOKING_FOR, LANGUAGES } from './profile/constants'
 type ProfileSettingsProps = {
   existingUser: User | null
   telegramId: number
-  onRegister?: (userData: User, jwt: string | null) => void
+  onRegister?: (userData: User) => void
 }
 
 export default function ProfileSettings({
@@ -126,16 +125,14 @@ export default function ProfileSettings({
         isEditMode,
         telegramId: existingUser?.telegramId,
       })
-      debugger
+
       if (isEditMode) {
         alert('Профіль успішно оновлено!')
         setInitialPhotos([...photos])
-        debugger
-        onRegister?.(newUser, null)
+        onRegister?.(newUser)
       } else {
         alert('Профіль успішно створено!')
-        const token = await telegramLogin(telegramId)
-        onRegister?.(newUser, token)
+        onRegister?.(newUser)
       }
     } catch (err) {
       console.error('Помилка збереження профілю:', err)

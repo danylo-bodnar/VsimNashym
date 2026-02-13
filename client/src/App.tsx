@@ -28,10 +28,10 @@ function App() {
 
   useEffect(() => {
     const initAuth = async () => {
-      if (!tg || !user) return
+      if (!tg?.initData) return
 
       try {
-        const token = await telegramLogin(user.id)
+        const token = await telegramLogin(tg.initData)
         setJwt(token)
         setAuthReady(true)
       } catch (err) {
@@ -40,7 +40,7 @@ function App() {
     }
 
     initAuth()
-  }, [tg, user])
+  }, [tg])
 
   // Fetch existing user data
 
@@ -104,9 +104,8 @@ function App() {
           <ProfileSettings
             telegramId={user.id}
             existingUser={userData}
-            onRegister={(newUser, token?) => {
+            onRegister={(newUser) => {
               setUserData(newUser)
-              if (token) setJwt(token)
             }}
           />
         )}
